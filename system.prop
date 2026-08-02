@@ -1,0 +1,11 @@
+# Samsung Galaxy A02s (SM-A025F) — system properties for TWRP recovery
+
+ro.display.series=Samsung Galaxy A02s
+ro.product.board=msm8953
+ro.board.platform=msm8953
+sys.usb.controller=7000000.dwc3
+ro.boot.dynamic_partitions=true
+ro.boot.bootdevice=7824900.sdhci
+
+# Fix touch initialization delay in recovery
+debug.sf.recomputecrop=0

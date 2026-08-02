@@ -1,0 +1,20 @@
+# Copyright (c) 2019-2020 The Linux Foundation. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+
+on boot
+    setprop ro.boot.vbmeta.avb_version 1.1
+    setprop ro.boot.avb_version 1.1
+
+on fs
+    wait /dev/block/platform/soc/${ro.boot.bootdevice}
+    symlink /dev/block/platform/soc/${ro.boot.bootdevice} /dev/block/bootdevice
+
+    export ANDROID_ROOT /system_root
+
+# Touch firmware initialization for Chipone TDDI (SM-A025F)
+# Driver: chipone-tddi | SPI bus: 78b7000.spi/spi3/spi3.3
+# Firmware: /vendor/firmware/chipone-tddi.bin
+on property:sys.boot_completed=0
+    write /sys/bus/spi/devices/spi3.3/update_firmware chipone-tddi.bin
