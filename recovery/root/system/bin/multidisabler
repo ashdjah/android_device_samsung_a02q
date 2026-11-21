@@ -1,3 +1,4 @@
+# WARNING: Disabling FBE reduces data-at-rest security. Run only if required.
 #!/system/bin/sh
 #
 # A simple Samsung services disabler by Ian Macdonald.

@@ -39,11 +39,11 @@ system					/system		ext4	ro,barrier=1,discard		wait,avb=vbmeta,logical,first_sta
 vendor					/vendor		ext4	ro,barrier=1,discard		wait,avb,logical,first_stage_mount
 product					/product	ext4	ro,barrier=1,discard		wait,avb,logical,first_stage_mount
 odm					/odm		ext4	ro,barrier=1,discard		wait,avb,logical,first_stage_mount
+/dev/block/bootdevice/by-name/metadata	/metadata	ext4	defaults			recoveryonly
 /dev/block/bootdevice/by-name/boot	/boot		emmc	defaults			recoveryonly
 /dev/block/bootdevice/by-name/recovery	/recovery	emmc	defaults			recoveryonly
-/dev/block/bootdevice/by-name/userdata	/data		f2fs	defaults			wait,encryptable=footer,length=-16384
+/dev/block/bootdevice/by-name/userdata	/data		f2fs	defaults			wait,check
 /dev/block/bootdevice/by-name/cache	/cache		ext4	defaults			recoveryonly
-/dev/block/mmcblk0p1			/sdcard		vfat	defaults			recoveryonly
 /dev/block/bootdevice/by-name/sec_efs	/efs		ext4	defaults			recoveryonly
 /dev/block/bootdevice/by-name/sec_efs	/sec_efs	ext4	defaults			recoveryonly
 /dev/block/bootdevice/by-name/carrier	/carrier	ext4	defaults			recoveryonly

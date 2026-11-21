@@ -2,6 +2,13 @@ name: Build TWRP for SM-A025F
 
 on:
   workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: twrp-a02q-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   MANIFEST_URL: 'https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git'
@@ -13,63 +20,90 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
     permissions:
-      contents: write
+      contents: read
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+    - name: Checkout device tree
+      uses: actions/checkout@v4
+      with:
+        path: device-tree
 
-    - name: Cleanup & Prepare Disk Space
+    - name: Maximize disk space
       run: |
-        docker rmi $(docker images -q) || true
-        sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /usr/local/lib/android || true
+        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL || true
+        docker image prune -af || true
         sudo apt-get clean
         df -h
 
-    - name: Install Build Dependencies
+    - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y gperf gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z-dev ccache libgl1-mesa-dev libxml2-utils xsltproc unzip device-tree-compiler python3 python3-pip git rsync
-        sudo pip3 install twrpdtgen
+        sudo apt-get install -y --no-install-recommends \
+          git-core gnupg flex bison build-essential zip curl zlib1g-dev \
+          libc6-dev-i386 libncurses5 x11proto-core-dev libx11-dev lib32z1-dev \
+          libgl1-mesa-dev libxml2-utils xsltproc unzip python3 python3-pip \
+          rsync ccache bc cpio libssl-dev libelf-dev lz4 openjdk-11-jdk
+        echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> "$GITHUB_ENV"
 
-    - name: Install Repo Tool
+    - name: Install repo tool
       run: |
         mkdir -p ~/bin
-        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o ~/bin/repo
         chmod a+x ~/bin/repo
-        sudo ln -sf ~/bin/repo /usr/bin/repo
+        echo "$HOME/bin" >> "$GITHUB_PATH"
 
-    - name: Set Git Config
+    - name: Set git config
       run: |
-        git config --global user.name "SM-A025F Fix"
-        git config --global user.email "twrp-fix@a025f.local"
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: Initialize Repo & Sync
+    - name: Initialize and sync TWRP source
       run: |
-        mkdir twrp-workspace
-        cd twrp-workspace
-        repo init --depth=1 --no-repo-verify -u ${{ env.MANIFEST_URL }} -b ${{ env.MANIFEST_BRANCH }} -g default,-mips,-darwin,-notdefault
-        repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc)
+        set -euxo pipefail
+        mkdir -p workspace
+        cd workspace
+        export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+        repo init --depth=1 --no-repo-verify -u "${MANIFEST_URL}" -b "${MANIFEST_BRANCH}" -g default,-mips,-darwin,-notdefault
+        repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync --current-branch -j"$(nproc)"
 
-    - name: Copy Device Tree to Workspace
+    - name: Verify prebuilt artifacts
       run: |
-        mkdir -p twrp-workspace/${{ env.DEVICE_PATH }}
-        cp -r ./* twrp-workspace/${{ env.DEVICE_PATH }}/
-        # Remove workspace directory copied into itself
-        rm -rf twrp-workspace/${{ env.DEVICE_PATH }}/twrp-workspace
+        set -euxo pipefail
+        for f in Image.gz dtb recoverydtbo mkbootimg; do
+          test -f "device-tree/prebuilt/$f" || { echo "Missing prebuilt/$f"; exit 1; }
+        done
 
-    - name: Build Recovery Image
+    - name: Copy device tree into workspace
       run: |
-        cd twrp-workspace
+        set -euxo pipefail
+        mkdir -p "workspace/${DEVICE_PATH}"
+        rsync -a --delete --exclude='.git' --exclude='.github' --exclude='workspace' device-tree/ "workspace/${DEVICE_PATH}/"
+        ls -la "workspace/${DEVICE_PATH}"
+
+    - name: Build recovery image
+      run: |
+        set -euxo pipefail
+        cd workspace
         export ALLOW_MISSING_DEPENDENCIES=true
+        export LC_ALL=C
+        export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+        export CCACHE_DIR="${GITHUB_WORKSPACE}/.ccache"
+        export USE_CCACHE=1
         . build/envsetup.sh
-        lunch ${{ env.MAKEFILE_NAME }}-eng
-        make ${{ env.BUILD_TARGET }}image -j$(nproc)
+        lunch "${MAKEFILE_NAME}-eng"
+        mka "${BUILD_TARGET}image" -j"$(nproc)"
 
-    - name: Upload TWRP Recovery Image
-      uses: actions/upload-artifact@v3
+    - name: Verify output
+      run: |
+        ls -lh "workspace/out/target/product/${DEVICE_NAME}/"
+        test -s "workspace/out/target/product/${DEVICE_NAME}/recovery.img"
+
+    - name: Upload recovery image
+      uses: actions/upload-artifact@v4
       with:
         name: TWRP-SM-A025F-recovery-image
-        path: twrp-workspace/out/target/product/${{ env.DEVICE_NAME }}/recovery.img
+        path: workspace/out/target/product/${{ env.DEVICE_NAME }}/recovery.img
+        if-no-files-found: error

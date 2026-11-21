@@ -1,3 +1,29 @@
-*.pyc
-*.swp
+# OS / editor
 .DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Build / CI workspace artifacts
+twrp-workspace/
+out/
+*.img
+*.tar
+*.zip
+*.o
+*.so
+
+# Secrets
+*.pem
+*.key
+*.p12
+
+# Logs
+*.log

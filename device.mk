@@ -1,3 +1,5 @@
+LOCAL_PATH := $(call my-dir)
+
 #
 # Copyright (C) 2020 The Android Open Source Project
 # SPDX-License-Identifier: Apache-2.0
@@ -11,14 +13,4 @@ PRODUCT_PACKAGES += \
     android.hardware.fastboot@1.0-impl-mock \
     fastbootd
 
-# Touch firmware — Chipone TDDI (SM-A025F verified)
-# Copied from /vendor/firmware/chipone-tddi.bin on running device
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/recovery/root/vendor/firmware/chipone-tddi.bin:$(TARGET_COPY_OUT_RECOVERY)/root/vendor/firmware/chipone-tddi.bin
-
-# Touch firmware — Himax variants (other regional A02s variants)
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/recovery/root/vendor/firmware/Himax_6mask_firmware.bin:$(TARGET_COPY_OUT_RECOVERY)/root/vendor/firmware/Himax_6mask_firmware.bin \
-    $(LOCAL_PATH)/recovery/root/vendor/firmware/Himax_6mask_mpfw.bin:$(TARGET_COPY_OUT_RECOVERY)/root/vendor/firmware/Himax_6mask_mpfw.bin \
-    $(LOCAL_PATH)/recovery/root/vendor/firmware/Himax_7mask_firmware.bin:$(TARGET_COPY_OUT_RECOVERY)/root/vendor/firmware/Himax_7mask_firmware.bin \
-    $(LOCAL_PATH)/recovery/root/vendor/firmware/Himax_7mask_mpfw.bin:$(TARGET_COPY_OUT_RECOVERY)/root/vendor/firmware/Himax_7mask_mpfw.bin
+# Firmware blobs are copied via find-copy-subdir-files in twrp_a02q.mk
