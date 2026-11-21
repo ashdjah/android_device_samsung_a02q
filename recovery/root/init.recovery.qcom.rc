@@ -12,6 +12,8 @@ on boot
     start autoreboot
     # dwc3'u device moduna zorla (yoksa adb hic gorunmez)
     start usbperiph
+    # TWRP acik kaldigi surece USB'yi ayakta tut
+    start usbkeep
 
 # dwc3'u "peripheral" moduna zorlayan kisa servis.
 # Ragekill agacindaki blok:
@@ -26,9 +28,21 @@ service usbperiph /system/bin/sh /system/bin/usb-peripheral.sh
     oneshot
     disabled
 
+# TWRP acik oldugu surece USB'yi ayakta tutar: tum dwc3/ssusb
+# kontrolculerini device modunda, sys.usb.config'de adb'yi ve adbd'yi
+# surekli guncel tutar. Kablo ne zaman takilirsa takilsin Termux veya PC
+# erisebilir. oneshot DEGIL: betik cikarsa init yeniden baslatir.
+service usbkeep /system/bin/sh /system/bin/usb-keepalive.sh
+    class core
+    user root
+    group root
+    seclabel u:r:recovery:s0
+    disabled
+
 on property:ro.boot.usbcontroller=*
     setprop sys.usb.controller ${ro.boot.usbcontroller}
     start usbperiph
+    start usbkeep
 
 # Otomatik yeniden baslatma guvenlik agi.
 # TWRP acildiktan 17 saniye sonra hicbir girdi (dokunmatik / tus / fare)

@@ -72,6 +72,20 @@ for d in /dev/input/event*; do
     ) &
 done
 
+# USB tarafi: karsi tarafta bir host (PC veya Termux) varsa da iptal say.
+# /sys/class/udc/<udc>/state "configured" ise konfigurasyon uygulanmis
+# demektir; yani biri baglanmis ve adb kullanıyor. Bu durumda 17 saniye
+# sonra reboot etmek baglantiyi oldurur, o yuzden iptal.
+(
+    while [ ! -e "$STOP" ]; do
+        if grep -qs configured /sys/class/udc/*/state 2>/dev/null; then
+            echo "usb-configured" >> "$HIT"
+            exit 0
+        fi
+        sleep 1
+    done
+) &
+
 log "$devs girdi aygiti dinleniyor, ${DELAY}sn"
 sleep "$DELAY"
 : > "$STOP" 2>/dev/null
