@@ -115,10 +115,13 @@ jobs:
           set -eo pipefail
           ls -lh "workspace/out/target/product/${DEVICE_NAME}/"
           test -s "workspace/out/target/product/${DEVICE_NAME}/recovery.img"
+          test -s "workspace/out/target/product/${DEVICE_NAME}/recovery.tar"
 
       - name: Upload recovery image
         uses: actions/upload-artifact@v4
         with:
           name: TWRP-SM-A025F-recovery-image
-          path: workspace/out/target/product/${{ env.DEVICE_NAME }}/recovery.img
+          path: |
+            workspace/out/target/product/a02q/recovery.img
+            workspace/out/target/product/a02q/recovery.tar
           if-no-files-found: error
