@@ -108,21 +108,31 @@ else
     log "UYARI: misc bolumu bulunamadi, sadece reboot"
 fi
 
+# TWRP'nin komut kuyrugu da temizlensin; yoksa bir sonraki aciliste
+# "boot-recovery" bayragini geri yazabilir.
+if [ -f /cache/recovery/command ]; then
+    rm -f /cache/recovery/command 2>/dev/null
+    log "/cache/recovery/command silindi"
+fi
+
 sync
 sleep 1
 
 # ---------------------------------------------------------------------------
-# 5) Yeniden baslat - once TWRP'nin kendi yolu, olmazsa dogrudan
+# 5) Yeniden baslat.
+#    ONEMLI: once DOGRUDAN reboot. misc zaten sifirlandigi icin bootloader
+#    baska care bulamaz ve Android'i acar. 'twrp reboot' ancak bu olmazsa
+#    denenir, cunku TWRP kendi BCB'sini yeniden yazma riski tasir.
 # ---------------------------------------------------------------------------
-log "twrp reboot deneniyor"
-timeout 10 twrp reboot >> "$LOG" 2>&1
-log "twrp reboot bitti (cikis=$?)"
-
-sleep 3
-log "dogrudan reboot"
+log "dogrudan reboot (misc temiz, TWRP bayragi yok)"
 sync
 reboot
 
 sleep 5
-log "reboot -f denemesi"
+log "twrp reboot (yedek yol)"
+timeout 10 twrp reboot >> "$LOG" 2>&1
+log "twrp reboot bitti (cikis=$?)"
+
+sleep 5
+log "reboot -f (son care)"
 reboot -f 2>/dev/null
