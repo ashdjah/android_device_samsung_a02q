@@ -7,9 +7,18 @@
 # calismadiginda cihaz TWRP'de kilitli kalip boot dongusune giriyor;
 # bu betik o donguyu kirar.
 #
-# Iptal:
-#   - Ekrana dokun / ses tusuna bas / fareyi oynat  -> 17 sn icinde iptal
-#   - Ya da /tmp/no-autoreboot veya /cache/.no-autoreboot dosyasini olustur
+# KULLANIM:
+#   /system/bin/autoreboot.sh           (init baslatir)
+#   /system/bin/autoreboot.sh cancel    geri sayimi ve servisi oldurur
+#
+# Iptal (bu oturumda TAMAMEN durur, reboot'a kadar geri gelmez):
+#   - adb shell touch /tmp/ready
+#   - adb shell touch /tmp/-ready
+#   - adb shell /system/bin/autoreboot.sh cancel
+#   - Ekrana dokun / ses veya power tusuna bas / USB fareyi oynat
+#   - /tmp/no-autoreboot veya /cache/.no-autoreboot
+#   - /sys/class/udc/*/state = configured (PC veya Termux bagli)
+#   - TWRP ayarlari degisirse (/data/.twrps)
 #
 # Log: /tmp/autoreboot.log  (ve /tmp/recovery.log)
 #
@@ -18,12 +27,29 @@ LOG=/tmp/autoreboot.log
 DELAY=17
 HIT=/tmp/autoreboot.hit
 STOP=/tmp/autoreboot.stop
+PIDFILE=/tmp/autoreboot.pid
 
 log() {
     echo "[autoreboot] $*" >> "$LOG" 2>/dev/null
     echo "[autoreboot] $*" >> /tmp/recovery.log 2>/dev/null
 }
 
+# --- Elle iptal: "autoreboot.sh cancel" -------------------------------------
+case "$1" in
+    cancel | stop | iptal)
+        : > /tmp/ready 2>/dev/null
+        log "manuel iptal istendi (adb/shell)"
+        if [ -f "$PIDFILE" ]; then
+            old=$(cat "$PIDFILE" 2>/dev/null)
+            [ -n "$old" ] && kill "$old" 2>/dev/null
+            log "calisan surec olduruldu (pid=$old)"
+        fi
+        echo "autoreboot: iptal edildi"
+        exit 0
+        ;;
+esac
+
+echo "$$" > "$PIDFILE" 2>/dev/null
 log "basladi (pid $$), bekleme suresi ${DELAY}sn"
 
 # ---------------------------------------------------------------------------
@@ -41,10 +67,13 @@ sleep 2
 # ---------------------------------------------------------------------------
 # 2) Elle iptal isareti
 # ---------------------------------------------------------------------------
-if [ -e /tmp/no-autoreboot ] || [ -e /cache/.no-autoreboot ]; then
-    log "IPTAL: isaret dosyasi bulundu"
-    exit 0
-fi
+# Hazir isaretleri: adb'den "ready" yazilmis mi?
+for f in /tmp/ready /tmp/-ready /tmp/no-autoreboot /cache/.no-autoreboot; do
+    if [ -e "$f" ]; then
+        log "IPTAL: hazir isareti bulundu -> $f"
+        exit 0
+    fi
+done
 
 # ---------------------------------------------------------------------------
 # 3) DELAY saniye boyunca girdi bekle
@@ -85,6 +114,37 @@ done
         sleep 1
     done
 ) &
+
+# adb/shell tarafindan "ready" isareti dusulmus mu?
+# adb shell touch /tmp/ready   veya   adb shell touch /tmp/-ready
+(
+    while [ ! -e "$STOP" ]; do
+        for f in /tmp/ready /tmp/-ready /tmp/no-autoreboot /cache/.no-autoreboot; do
+            if [ -e "$f" ]; then
+                echo "isaret:$f" >> "$HIT"
+                exit 0
+            fi
+        done
+        sleep 0.5
+    done
+) &
+
+# TWRP'de bir ayar degisirse (kullanici menuyu kullaniyor) iptal.
+# /data/.twrps TWRP'nin ayarlari; dokunmatik calisiyorsa zaten geri sayima
+# gerek yok, o yuzden degisikligi iptal sayiyoruz.
+if [ -f /data/.twrps ]; then
+    base=$(ls -l /data/.twrps 2>/dev/null | awk '{print $6"_"$7"_"$8}')
+    (
+        while [ ! -e "$STOP" ]; do
+            now=$(ls -l /data/.twrps 2>/dev/null | awk '{print $6"_"$7"_"$8}')
+            if [ -n "$now" ] && [ "$now" != "$base" ]; then
+                echo "twrp-ayari-degisti" >> "$HIT"
+                exit 0
+            fi
+            sleep 1
+        done
+    ) &
+fi
 
 log "$devs girdi aygiti dinleniyor, ${DELAY}sn"
 sleep "$DELAY"
