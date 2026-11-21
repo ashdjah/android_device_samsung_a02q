@@ -21,6 +21,15 @@ log "basladi (pid $$)"
 
 while :; do
     # --- 1) tum USB kontrolculerini device modunda tut ------------------------
+    # Bus'ta gercek bir USB cihazi var mi? (OTG + fare / klavye gibi)
+    # Host modundayken bir sey enumerate olmussa kullanici host kullaniyor
+    # demektir; ona dokunma, yoksa fare/klavye calismaz.
+    # /sys/bus/usb/devices altindaki usbN'ler root hub, N-M'ler gercek cihaz.
+    bus_busy=0
+    for u in /sys/bus/usb/devices/[0-9]*-[0-9]*; do
+        [ -e "$u" ] && { bus_busy=1; break; }
+    done
+
     for d in /sys/bus/platform/devices/*; do
         n=$(basename "$d" 2>/dev/null)
         case "$n" in
@@ -30,8 +39,12 @@ while :; do
         [ -w "$d/mode" ] || continue
         cur=$(cat "$d/mode" 2>/dev/null)
         if [ "$cur" != "peripheral" ]; then
-            echo peripheral > "$d/mode" 2>>"$LOG"
-            log "mode: $n '$cur' -> '$(cat "$d/mode" 2>/dev/null)'"
+            if [ "$cur" = "host" ] && [ "$bus_busy" = "1" ]; then
+                log "mode: $n 'host' birakildi (bus dolu)"
+            else
+                echo peripheral > "$d/mode" 2>>"$LOG"
+                log "mode: $n '$cur' -> '$(cat "$d/mode" 2>/dev/null)'"
+            fi
         fi
     done
 

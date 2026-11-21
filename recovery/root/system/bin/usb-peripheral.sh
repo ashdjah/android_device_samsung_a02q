@@ -53,8 +53,19 @@ done
 if [ -z "$UNIQ" ]; then
     log "UYARI: hicbir 'mode' dugumu bulunamadi (kernel bu attribute'u sallamiyor olabilir)"
 else
+    # Bus'ta gercek bir cihaz varsa (OTG + fare) host modulun birak.
+    bus_busy=0
+    for u in /sys/bus/usb/devices/[0-9]*-[0-9]*; do
+        [ -e "$u" ] && { bus_busy=1; break; }
+    done
+    [ "$bus_busy" = "1" ] && log "bus dolu, 'host' modu birakiliyor"
+
     for n in $UNIQ; do
         before=$(cat "$n" 2>/dev/null)
+        if [ "$bus_busy" = "1" ] && [ "$before" = "host" ]; then
+            log "ATLANDI $n : 'host' birakildi (bus dolu)"
+            continue
+        fi
         if echo peripheral > "$n" 2>>"$LOG"; then
             after=$(cat "$n" 2>/dev/null)
             log "OK   $n : '$before' -> '$after'"
