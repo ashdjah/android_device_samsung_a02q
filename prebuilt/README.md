@@ -1,10 +1,19 @@
 # Prebuilt binaries
 
-Place the following files here before building:
-- `kernel` — prebuilt kernel image
-- `dtb.img` — device tree blob
-- `dtbo.img` — recovery dtbo image
-- `mkbootimg` — boot image tool (moved from repo root)
+Place the following files in `prebuilt/` before building:
 
-These were sourced from Ragekill3377/a02q_twrp_tree_omni.
-Reference: https://github.com/Ragekill3377/TWRP-SM-A025F-OS12
+| File | Direct Download Link | Source Revision | Required |
+|------|---------------------|-----------------|----------|
+| `kernel` | https://raw.githubusercontent.com/Ragekill3377/a02q_twrp_tree_omni/main/prebuilt/kernel | Ragekill3377/a02q_twrp_tree_omni @ main | Yes |
+| `dtb.img` | https://raw.githubusercontent.com/Ragekill3377/a02q_twrp_tree_omni/main/prebuilt/dtb.img | Ragekill3377/a02q_twrp_tree_omni @ main | Yes |
+| `dtbo.img` | https://raw.githubusercontent.com/Ragekill3377/a02q_twrp_tree_omni/main/prebuilt/dtbo.img | Ragekill3377/a02q_twrp_tree_omni @ main | Yes |
+| `mkbootimg` | https://raw.githubusercontent.com/Ragekill3377/a02q_twrp_tree_omni/main/prebuilt/mkbootimg | Ragekill3377/a02q_twrp_tree_omni @ main | Yes |
+
+> ⚠️ Without these prebuilt artifacts, `make recoveryimage` will fail. The CI workflow verifies their presence before building.
+>
+> **Checksums:** Compute SHA-256 locally after downloading to verify integrity:
+> ```bash
+> sha256sum prebuilt/kernel prebuilt/dtb.img prebuilt/dtbo.img prebuilt/mkbootimg
+> ```
+
+License of extracted binaries follows their original source (Ragekill3377/a02q_twrp_tree_omni).
