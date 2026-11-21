@@ -4,16 +4,23 @@ TWRP Device Tree for Samsung Galaxy A02s (SM-A025F / SM-A025F/DS) — Android 12
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build TWRP](https://github.com/ashdjah/android_device_samsung_a02q/actions/workflows/twrp-build.yml/badge.svg)](https://github.com/ashdjah/android_device_samsung_a02q/actions/workflows/twrp-build.yml)
-[![Android 12](https://img.shields.io/badge/Android-12-green)](https://source.android.com/)
-[![TWRP 3.7+](https://img.shields.io/badge/TWRP-3.7%2B-blue)](https://twrp.me/)
 
 ---
 
-## 📖 About This Project
+## ⚠️ Important Warning — Read Before Flashing
 
-This is a **TWRP (Team Win Recovery Project) device tree** for the **Samsung Galaxy A02s** (models **SM-A025F** and **SM-A025F/DS**), targeting **Android 12 (API 31)** with TWRP 3.7+.
+**This device tree is UNTESTED.** It has **not** been booted on a physical SM-A025F/DS device. Build success does **not** guarantee that the recovery will boot, that touch will work, that decryption will function, or that your data will be safe.
 
-> ⚠️ **This device tree is UNTESTED.** Build success, hardware compatibility, touch, display, decryption, and all functionality are provided **as-is** without warranty. Building, testing, or using this project is entirely **at your own risk**. The developer and contributors are **not responsible** for device bricking (soft/hard brick), data loss, warranty loss, or any kind of damage.
+Building, flashing, or using this project is entirely **at your own risk**. The maintainer and contributors are **not responsible** for:
+- Device bricking (soft/hard brick)
+- Data loss
+- Warranty loss
+- Any kind of damage
+
+**Before flashing:**
+1. Back up your stock firmware (BL, AP, CP, CSC)
+2. Back up your `vbmeta` partition
+3. Ensure your bootloader is unlocked
 
 ---
 
@@ -25,9 +32,9 @@ This is a **TWRP (Team Win Recovery Project) device tree** for the **Samsung Gal
 | Codename | `a02q` |
 | Chipset | Qualcomm Snapdragon 450 (MSM8953) |
 | GPU | Adreno 506 |
-| Architecture | arm64 + arm (32-bit userspace) |
-| Target OS | Android 12 (API 31) |
-| TWRP Version | 3.7+ |
+| Architecture | arm64 kernel + 32-bit userspace |
+| Android Base | 12 (API 31) |
+| TWRP Target | 3.7+ |
 | Screen | 720×1600, 280 dpi |
 | Touch Controller | ChipOne TDDI (SPI `spi3.3`) |
 | Brightness Path | `/sys/devices/platform/soc/1a00000.qcom,mdss_mdp/1a00000.qcom,mdss_mdp:qcom,mdss_fb_primary/leds/lcd-backlight/brightness` |
@@ -35,20 +42,16 @@ This is a **TWRP (Team Win Recovery Project) device tree** for the **Samsung Gal
 
 ---
 
-## 🚀 Features
+## 📊 Test Status
 
-- ✅ Touch driver fix: `chipone-tddi` via SPI (removed invalid `hbtp_vm` blacklist)
-- ✅ Platform version corrected to Android 12
-- ✅ Brightness path verified from running device
-- ✅ Super partition size verified from device (`mmcblk0p72`)
-- ✅ Dynamic partitions group size updated
-- ✅ Product model corrected to `SM-A025F`
-- ✅ Pixel format `RGBX_8888` (correct for Samsung MDSS panel)
-- ✅ Notch offsets removed (SM-A025F has no notch)
-- ✅ Default brightness adjusted to 180
-- ✅ OrangeFox-specific variables removed from `vendorsetup.sh`
-- ✅ AVB disabled vbmeta support (`--flags 2`)
-- ✅ GitHub Actions CI build (Ubuntu 22.04, JDK 11)
+| Feature | Status | Notes |
+|---------|--------|-------|
+| CI Build | Pending | GitHub Actions workflow |
+| Boot to TWRP | ❌ Untested | No physical device available |
+| Touch | ❌ Untested | `chipone-tddi.bin` firmware included |
+| Brightness | ❌ Untested | Path verified from ADB |
+| Decryption / FBE | ⚠️ Limited | Run `multidisabler` if needed; understand data-at-rest risks |
+| MTP | ❌ Untested | May require kernel changes |
 
 ---
 
@@ -56,16 +59,16 @@ This is a **TWRP (Team Win Recovery Project) device tree** for the **Samsung Gal
 
 Before building, place the following files in `prebuilt/` (see [`prebuilt/README.md`](prebuilt/README.md)):
 
-| File | Description | Required |
-|------|-------------|----------|
-| `kernel` | Prebuilt kernel image | Yes |
-| `dtb.img` | Device tree blob | Yes |
-| `dtbo.img` | Recovery device tree blob overlay | Yes |
-| `mkbootimg` | Boot image creation tool | Yes |
+| File | Source Revision | SHA-256 | Required |
+|------|-----------------|---------|----------|
+| `kernel` | Ragekill3377/a02q_twrp_tree_omni (main) | [compute locally] | Yes |
+| `dtb.img` | Ragekill3377/a02q_twrp_tree_omni (main) | [compute locally] | Yes |
+| `dtbo.img` | Ragekill3377/a02q_twrp_tree_omni (main) | [compute locally] | Yes |
+| `mkbootimg` | Ragekill3377/a02q_twrp_tree_omni (main) | [compute locally] | Yes |
 
-**Source:** These were extracted from [Ragekill3377/a02q_twrp_tree_omni](https://github.com/Ragekill3377/a02q_twrp_tree_omni). License of extracted binaries follows their original source.
+**Direct source:** https://github.com/Ragekill3377/a02q_twrp_tree_omni/tree/main/prebuilt
 
-> ⚠️ Without these prebuilt artifacts, `make recoveryimage` will fail. The workflow automatically verifies their presence before building.
+> ⚠️ Without these prebuilt artifacts, `make recoveryimage` will fail. The workflow verifies their presence before building. Compute the SHA-256 checksum of each file after downloading to verify integrity.
 
 ---
 
@@ -126,47 +129,35 @@ gh run download <RUN_ID> --name TWRP-SM-A025F-recovery-image
 
 ---
 
-## 💾 Flashing Instructions
+## 💾 Flashing Instructions (Samsung SM-A025F/DS — Odin Only)
+
+Samsung SM-A025F/DS devices use **Download Mode + Odin**, not fastboot. Fastboot commands will **not** work on this device unless fastbootd is explicitly available in recovery (not guaranteed).
 
 ### Prerequisites
 
 - Unlocked bootloader
-- Odin (Windows) or Heimdall/fastboot (Linux)
+- Odin (Windows) — [Download from official Samsung sources]
 - Stock firmware backup (BL, AP, CP, CSC)
 - `vbmeta_disabled.tar` if your device requires AVB disabled
 
 ### Flash via Odin
 
 1. Boot device into Download Mode (Vol Down + Power + Vol Up)
-2. Open Odin, uncheck **Auto Reboot**
+2. Open Odin, **uncheck Auto Reboot**
 3. Load `recovery.tar` into **AP** slot
 4. Click **Start**
-5. Immediately boot to Recovery (Vol Up + Power + USB) after flashing to prevent stock recovery restoration
-
-### Flash via Fastboot / Heimdall
-
-```bash
-fastboot flash recovery recovery.img
-fastboot flash vbmeta vbmeta_disabled.img  # if required
-fastboot boot recovery.img
-```
+5. **Immediately boot to Recovery** (Vol Up + Power + USB) after flashing to prevent stock recovery restoration
 
 ---
 
-## ⚠️ Important Warning
+## 🔙 Recovery Rollback
 
-**This device tree is UNTESTED.** Build success, hardware compatibility, touch, display, decryption, and all functionality are provided **as-is** without warranty.
+If TWRP fails to boot or causes a bootloop:
 
-Building, testing, or using this project is entirely **at your own risk**. The developer and contributors are **not responsible** for:
-- Device bricking (soft/hard brick)
-- Data loss
-- Warranty loss
-- Any kind of damage
-
-**Before flashing:**
-1. Back up your stock firmware (BL, AP, CP, CSC)
-2. Back up your `vbmeta` partition
-3. Ensure your bootloader is unlocked
+1. Boot to Download Mode
+2. Flash stock firmware (BL, AP, CP, CSC) via Odin
+3. Re-flash TWRP with Auto Reboot disabled
+4. Boot to Recovery immediately
 
 ---
 
@@ -184,22 +175,24 @@ Building, testing, or using this project is entirely **at your own risk**. The d
 | **Build fails: tar error** | GNU tar `-H` flag | Use `--format=ustar` instead of `-H ustar` (fixed in `bootimg.mk`) |
 | **Build fails: envsetup nounset** | `set -u` with AOSP envsetup | Use `set +u` before sourcing `build/envsetup.sh` (fixed in workflow) |
 
-### Recovery Rollback
+### Reporting a Bug
 
-If TWRP fails to boot:
-1. Boot to Download Mode
-2. Flash stock firmware (BL, AP, CP, CSC) via Odin
-3. Re-flash TWRP with Auto Reboot disabled
-4. Boot to Recovery immediately
+When opening an issue, include:
+- Device model and exact firmware version (e.g. SM-A025FXXUXXXX)
+- Whether bootloader is unlocked
+- Steps to reproduce
+- Build output / logcat / dmesg if available
+- What you expected vs. what happened
+
+Use the bug report template under `.github/ISSUE_TEMPLATE/bug_report.md`.
 
 ---
 
-## 🐛 Known Limitations
+## 🏷️ Device Variants
 
-- Encryption/FBE support is limited on this device; run `multidisabler` only if needed and understand data-at-rest risks.
-- SELinux is not forced permissive in this tree; keep enforcing where possible.
-- MTP may require kernel modifications.
-- Touch may require power-button lock/unlock to reinitialize on some units.
+- **SM-A025F** — Snapdragon variant (this tree's target)
+- **SM-A025F/DS** — Dual SIM variant (same chipset, compatible)
+- **SM-A025G** — Not supported by this tree (different regional variant)
 
 ---
 
@@ -221,44 +214,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines. Summary:
 - Keep comments in English where possible for broader collaboration.
 - Do not commit secrets (keys, tokens, passwords).
 - Prebuilt binaries (kernel, dtb, dtbo, mkbootimg, firmware blobs) should be documented in `prebuilt/README.md`.
-
-### Reporting Issues
-
-Use the issue templates under `.github/ISSUE_TEMPLATE/`. Include:
-- Device model and firmware version
-- Steps to reproduce
-- Logcat or build error output
-- What you expected vs. what happened
-
----
-
-## 📊 Test Status
-
-| Test | Status | Notes |
-|------|--------|-------|
-| Build (CI) | Pending | GitHub Actions workflow |
-| Boot to TWRP | ❌ Untested | No physical device available |
-| Touch | ❌ Untested | chipone-tddi firmware included |
-| Brightness | ❌ Untested | Path verified from ADB |
-| Decryption/FBE | ⚠️ Limited | Run multidisabler if needed |
-| MTP | ❌ Untested | May require kernel changes |
-
----
-
-## 🏷️ Device Variants
-
-- **SM-A025F** — Snapdragon variant (this tree's target)
-- **SM-A025F/DS** — Dual SIM variant (same chipset, compatible)
-- **SM-A025G** — Not supported by this tree (different regional variant)
-
----
-
-## 🤝 Credits
-
-- [ForForkSake/a02s](https://gitlab.com/ForForkSake/a02s) — Original OFRP tree
-- [Ragekill3377/TWRP-SM-A025F-OS12](https://github.com/Ragekill3377/TWRP-SM-A025F-OS12) — TWRP build reference & prebuilt sources
-- [SebaUbuntu](https://github.com/SebaUbuntu) — TWRP device tree generator
-- [minimal-manifest-twrp/platform_manifest_twrp_aosp](https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp) — Manifest (twrp-12.1)
 
 ---
 
@@ -295,9 +250,3 @@ Bu cihaz ağacı **henüz test edilmemiştir**. Derleme, donanım uygunluğu ve 
 3. Bootloader'ınızın kilidinin açık olduğundan emin olun
 
 ---
-
-## 🤖 AI-Assisted Development
-
-Bu depodaki kodlar ve yapılandırma dosyaları yapay zeka (OpenCode) tarafından incelenmiş, analiz edilmiş ve iyileştirilmiştir. Tüm değişiklikler proje bakımcısı tarafından gözden geçirilmiştir ve üretime sunulmadan önce test edilmelidir.
-
-The code and configuration files in this repository have been reviewed, analyzed, and improved using artificial intelligence (OpenCode). All changes have been reviewed by the repository maintainer and should be tested before production use.
