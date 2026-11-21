@@ -14,11 +14,14 @@ __pycache__/
 # Build / CI workspace artifacts
 twrp-workspace/
 out/
-*.img
 *.tar
 *.zip
 *.o
 *.so
+
+# Ignore built images, but keep committed prebuilts
+*.img
+!prebuilt/*.img
 
 # Secrets
 *.pem

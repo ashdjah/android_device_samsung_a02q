@@ -51,9 +51,9 @@ TARGET_BOARD_PLATFORM_GPU := qcom-adreno506
 QCOM_BOARD_PLATFORMS += msm8953
 
 # Kernel
-TARGET_PREBUILT_KERNEL := device/samsung/a02q/prebuilt/Image.gz
-TARGET_PREBUILT_DTB := device/samsung/a02q/prebuilt/dtb
-BOARD_PREBUILT_DTBOIMAGE := device/samsung/a02q/prebuilt/recoverydtbo
+TARGET_PREBUILT_KERNEL := device/samsung/a02q/prebuilt/kernel
+TARGET_PREBUILT_DTB := device/samsung/a02q/prebuilt/dtb.img
+BOARD_PREBUILT_DTBOIMAGE := device/samsung/a02q/prebuilt/dtbo.img
 BOARD_INCLUDE_DTB_IN_BOOTIMG := true
 BOARD_INCLUDE_RECOVERY_DTBO := true
 TARGET_KERNEL_ARCH := arm64
@@ -62,7 +62,7 @@ TARGET_KERNEL_ARCH := arm64
 BOARD_BOOT_HEADER_VERSION := 2
 BOARD_KERNEL_BASE := 0x80000000
 BOARD_KERNEL_CMDLINE := androidboot.hardware=qcom msm_rtb.filter=0x237 ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci lpm_levels.sleep_disabled=1 androidboot.usbconfigfs=true vmalloc=300M loop.max_part=7
-BOARD_KERNEL_IMAGE_NAME := Image.gz
+BOARD_KERNEL_IMAGE_NAME := Image
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_OFFSET := 0x00008000
 BOARD_RAMDISK_OFFSET := 0x02000000

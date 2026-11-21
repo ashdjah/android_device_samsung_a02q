@@ -72,7 +72,7 @@ jobs:
     - name: Verify prebuilt artifacts
       run: |
         set -euxo pipefail
-        for f in Image.gz dtb recoverydtbo mkbootimg; do
+        for f in kernel dtb.img dtbo.img mkbootimg; do
           test -f "device-tree/prebuilt/$f" || { echo "Missing prebuilt/$f"; exit 1; }
         done
 
