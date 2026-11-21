@@ -196,6 +196,22 @@ Use the bug report template under `.github/ISSUE_TEMPLATE/bug_report.md`.
 
 ---
 
+## 🙏 Credits
+
+This tree builds on other people's work:
+
+- **[Team Win Recovery Project (TWRP)](https://github.com/TeamWin)** — recovery sources
+- **[minimal-manifest-twrp](https://github.com/minimal-manifest-twrp)** — manifest `platform_manifest_twrp_aosp`, branch `twrp-12.1`
+- **AOSP / LineageOS** — base source tree
+- **[@Ragekill3377](https://github.com/Ragekill3377/a02q_twrp_tree_omni)** — `prebuilt/kernel`, `prebuilt/dtb.img`, `prebuilt/dtbo.img` and `prebuilt/mkbootimg`
+- **[@ashdjah](https://github.com/ashdjah)** — device tree and CI
+- **openhands-agent** — build and CI fixes
+
+Prebuilt binaries keep the license of their original source; see
+[`prebuilt/README.md`](prebuilt/README.md).
+
+---
+
 ## 🤝 Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines. Summary:
