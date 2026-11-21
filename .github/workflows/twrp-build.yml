@@ -62,7 +62,7 @@ jobs:
 
     - name: Initialize and sync TWRP source
       run: |
-        set -euxo pipefail
+        set -eo pipefail
         mkdir -p workspace
         cd workspace
         export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
@@ -71,27 +71,36 @@ jobs:
 
     - name: Verify prebuilt artifacts
       run: |
-        set -euxo pipefail
+        set -eo pipefail
         for f in kernel dtb.img dtbo.img mkbootimg; do
           test -f "device-tree/prebuilt/$f" || { echo "Missing prebuilt/$f"; exit 1; }
         done
 
     - name: Copy device tree into workspace
       run: |
-        set -euxo pipefail
+        set -eo pipefail
         mkdir -p "workspace/${DEVICE_PATH}"
         rsync -a --delete --exclude='.git' --exclude='.github' --exclude='workspace' device-tree/ "workspace/${DEVICE_PATH}/"
         ls -la "workspace/${DEVICE_PATH}"
 
+    - name: Diagnose workspace
+      run: |
+        set -eo pipefail
+        pwd
+        ls -la
+        ls -l build/make/core/envsetup.mk || true
+        find . -maxdepth 3 -name envsetup.mk | head
+
     - name: Build recovery image
       run: |
-        set -euxo pipefail
+        set -eo pipefail
         cd workspace
         export ALLOW_MISSING_DEPENDENCIES=true
         export LC_ALL=C
         export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
         export CCACHE_DIR="${GITHUB_WORKSPACE}/.ccache"
         export USE_CCACHE=1
+        set +u
         . build/envsetup.sh
         lunch "${MAKEFILE_NAME}-eng"
         mka "${BUILD_TARGET}image" -j"$(nproc)"
