@@ -117,7 +117,7 @@ jobs:
           test -s "workspace/out/target/product/${DEVICE_NAME}/recovery.img"
 
       - name: Upload recovery image
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: TWRP-SM-A025F-recovery-image
           path: workspace/out/target/product/${{ env.DEVICE_NAME }}/recovery.img
