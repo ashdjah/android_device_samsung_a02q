@@ -10,6 +10,25 @@ on boot
     write /sys/bus/spi/devices/spi3.3/update_firmware chipone-tddi.bin
     # Safety net: reboot to system if nothing happens for 17 seconds
     start autoreboot
+    # dwc3'u device moduna zorla (yoksa adb hic gorunmez)
+    start usbperiph
+
+# dwc3'u "peripheral" moduna zorlayan kisa servis.
+# Ragekill agacindaki blok:
+#   write /sys/bus/platform/devices/${ro.boot.usb.dwc3_msm:-a600000.ssusb}/mode peripheral
+# bizim agacta yoktu; sys.usb.controller set ediliyor ama dwc3 host modunda
+# kaldigi icin gadget hicbir zaman enumerate olmuyordu.
+service usbperiph /system/bin/sh /system/bin/usb-peripheral.sh
+    class core
+    user root
+    group root
+    seclabel u:r:recovery:s0
+    oneshot
+    disabled
+
+on property:ro.boot.usbcontroller=*
+    setprop sys.usb.controller ${ro.boot.usbcontroller}
+    start usbperiph
 
 # Otomatik yeniden baslatma guvenlik agi.
 # TWRP acildiktan 17 saniye sonra hicbir girdi (dokunmatik / tus / fare)
