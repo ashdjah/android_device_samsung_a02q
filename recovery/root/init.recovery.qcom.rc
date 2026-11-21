@@ -8,6 +8,21 @@ on boot
     setprop ro.boot.avb_version 1.1
     # Touch firmware initialization for Chipone TDDI (SM-A025F)
     write /sys/bus/spi/devices/spi3.3/update_firmware chipone-tddi.bin
+    # Safety net: reboot to system if nothing happens for 17 seconds
+    start autoreboot
+
+# Otomatik yeniden baslatma guvenlik agi.
+# TWRP acildiktan 17 saniye sonra hicbir girdi (dokunmatik / tus / fare)
+# gelmezse BCB temizlenip cihaz sisteme yeniden baslatilir. Dokunmatik
+# calismadiginda cihazin TWRP'de kilitli kalmasini onler.
+# Iptal: /tmp/no-autoreboot veya /cache/.no-autoreboot dosyasi.
+service autoreboot /system/bin/sh /system/bin/autoreboot.sh
+    class core
+    user root
+    group root
+    seclabel u:r:recovery:s0
+    oneshot
+    disabled
 
 on fs
     wait /dev/block/platform/soc/${ro.boot.bootdevice}
