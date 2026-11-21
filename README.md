@@ -205,3 +205,11 @@ Bu cihaz ağacı **henüz test edilmemiştir**. Derleme, donanım uygunluğu ve 
 3. Bootloader'ınızın kilidinin açık olduğundan emin olun
 
 ---
+
+## 🤖 AI-Assisted Development
+
+Bu depodaki kodlar ve yapılandırma dosyaları yapay zeka (OpenCode) tarafından incelenmiş, analiz edilmiş ve iyileştirilmiştir. Tüm değişiklikler proje bakımcısı tarafından gözden geçirilmiştir ve üretime sunulmadan önce test edilmelidir.
+
+The code and configuration files in this repository have been reviewed, analyzed, and improved using artificial intelligence (OpenCode). All changes have been reviewed by the repository maintainer and should be tested before production use.
+
+---
