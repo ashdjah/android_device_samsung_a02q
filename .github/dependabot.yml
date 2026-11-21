@@ -4,7 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     labels:
       - "dependencies"
       - "ci"
+    ignore:
+      - dependency-name: "actions/*"
+        versions: [">= 5"]
