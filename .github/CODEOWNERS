@@ -1,0 +1,20 @@
+# CODEOWNERS
+
+# Default owners for everything
+* @ashdjah
+
+# Documentation
+/docs/ @ashdjah
+*.md @ashdjah
+
+# Build configuration
+BoardConfig.mk @ashdjah
+device.mk @ashdjah
+twrp_a02q.mk @ashdjah
+*.mk @ashdjah
+
+# CI/CD
+.github/workflows/ @ashdjah
+
+# Recovery files
+recovery/ @ashdjah

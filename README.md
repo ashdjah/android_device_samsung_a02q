@@ -1,73 +1,91 @@
-# TWRP Device Tree — Samsung Galaxy A02s (SM-A025F)
+# android_device_samsung_a02q
 
-**Target OS**: Android 12 (API 31) **TWRP version**: 3.7+ **Chipset**: Qualcomm Snapdragon 450 (MSM8953)
+TWRP Device Tree for Samsung Galaxy A02s (SM-A025F / SM-A025F/DS) — Android 12
 
-## Changes from original OFRP tree (ForForkSake/a02s)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build TWRP](https://github.com/ashdjah/android_device_samsung_a02q/actions/workflows/twrp-build.yml/badge.svg)](https://github.com/ashdjah/android_device_samsung_a02q/actions/workflows/twrp-build.yml)
+[![Android 12](https://img.shields.io/badge/Android-12-green)](https://source.android.com/)
+[![TWRP 3.7+](https://img.shields.io/badge/TWRP-3.7%2B-blue)](https://twrp.me/)
 
-### 🔴 Critical fixes
+---
 
-| Fix | Detail |
-| --- | --- |
-| **Touch driver** | Removed `TW_INPUT_BLACKLIST := "hbtp_vm"` — `hbtp_vm` does not exist on SM-A025F. Touch controller is `chipone-tddi` via SPI (`spi3.3`). Added `chipone-tddi.bin` firmware to recovery ramdisk. |
-| **Platform version** | Changed `PLATFORM_VERSION` from `11` → `12` (device runs Android 12) |
+## 📱 Device Information
 
-### 🟠 Important fixes
+| Property | Value |
+|----------|-------|
+| Model | Samsung Galaxy A02s (SM-A025F / SM-A025F/DS) |
+| Codename | `a02q` |
+| Chipset | Qualcomm Snapdragon 450 (MSM8953) |
+| GPU | Adreno 506 |
+| Architecture | arm64 + arm (32-bit userspace) |
+| Target OS | Android 12 (API 31) |
+| TWRP Version | 3.7+ |
+| Screen | 720×1600, 280 dpi |
+| Touch Controller | ChipOne TDDI (SPI `spi3.3`) |
+| Brightness Path | `/sys/devices/platform/soc/1a00000.qcom,mdss_mdp/1a00000.qcom,mdss_mdp:qcom,mdss_fb_primary/leds/lcd-backlight/brightness` |
+| Super Partition | 4,848,615,424 bytes (~4.52 GB) |
 
-| Fix | Detail |
-| --- | --- |
-| **Brightness path** | Corrected to verified sysfs path from running device |
-| **Super partition size** | Updated from `4324327424` → `4848615424` bytes (verified from `mmcblk0p72`) |
-| **Dynamic partitions group size** | Updated accordingly: `4844421120` |
+---
 
-### 🟡 Minor fixes
+## 🚀 Features
 
-| Fix | Detail |
-| --- | --- |
-| **Product model** | `SM-A025G` → `SM-A025F` |
-| **Pixel format** | `BGRA_8888` → `RGBX_8888` (correct for Samsung MDSS) |
-| **Notch offsets** | Removed — SM-A025F has no notch |
-| **Default brightness** | `130` → `180` |
-| **vendorsetup.sh** | Retains OrangeFox helper functions; unused for TWRP builds |
+- ✅ Touch driver fix: `chipone-tddi` via SPI (removed invalid `hbtp_vm` blacklist)
+- ✅ Platform version corrected to Android 12
+- ✅ Brightness path verified from running device
+- ✅ Super partition size verified from device (`mmcblk0p72`)
+- ✅ Dynamic partitions group size updated
+- ✅ Product model corrected to `SM-A025F`
+- ✅ Pixel format `RGBX_8888` (correct for Samsung MDSS panel)
+- ✅ Notch offsets removed (SM-A025F has no notch)
+- ✅ Default brightness adjusted to 180
+- ✅ OrangeFox-specific variables removed from `vendorsetup.sh`
+- ✅ AVB disabled vbmeta support (`--flags 2`)
+- ✅ GitHub Actions CI build (Ubuntu 22.04, JDK 11)
 
-## Device info (verified via ADB)
+---
 
-```
-Model:          SM-A025F
-Platform:       MSM8953 (Snapdragon 450)
-Touch:          chipone-tddi @ /dev/input/event2 (SPI spi3.3)
-Screen:         720x1600, density 280
-Brightness:     /sys/devices/platform/soc/1a00000.qcom,mdss_mdp/.../leds/lcd-backlight/brightness
-Max brightness: 255
-Super size:     4848615424 bytes (4.52 GB)
-Android:        12 (SDK 31)
-```
+## 📦 Prebuilt Artifacts (Required)
 
-## Prerequisites
+Before building, place the following files in `prebuilt/` (see [`prebuilt/README.md`](prebuilt/README.md)):
 
-- Linux host with at least 100 GB free disk space
+| File | Description |
+|------|-------------|
+| `kernel` | Prebuilt kernel image |
+| `dtb.img` | Device tree blob |
+| `dtbo.img` | Recovery device tree blob overlay |
+| `mkbootimg` | Boot image creation tool |
+
+These were sourced from [Ragekill3377/a02q_twrp_tree_omni](https://github.com/Ragekill3377/a02q_twrp_tree_omni).
+
+> ⚠️ Without these prebuilt artifacts, `make recoveryimage` will fail.
+
+---
+
+## 🛠️ Build Instructions
+
+### Prerequisites
+
+- Linux host (Ubuntu 22.04 recommended)
+- ≥100 GB free disk space
 - `repo`, Python 3, OpenJDK 11
 - AOSP build dependencies (see workflow)
-- Unlocked bootloader device for flashing/testing
+- Unlocked bootloader device for testing
 
-## Prebuilt artifacts (required)
+### Manual Build
 
-Before building, place these files in `prebuilt/` (see `prebuilt/README.md`):
-
-- `Image.gz`
-- `dtb`
-- `recoverydtbo`
-- `mkbootimg`
-
-## Build
-
-```
+```bash
+# Initialize TWRP 12.1 manifest
 repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
+
+# Sync sources
 repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j8
 
-# Clone this tree
+# Clone this device tree
 git clone https://github.com/ashdjah/android_device_samsung_a02q device/samsung/a02q
 
-# Place prebuilt kernel artifacts (see prebuilt/README.md)
+# Place prebuilt artifacts in device/samsung/a02q/prebuilt/ (see prebuilt/README.md)
+
+# Build
 export ALLOW_MISSING_DEPENDENCIES=true
 . build/envsetup.sh
 lunch twrp_a02q-eng
@@ -75,42 +93,115 @@ make recoveryimage -j$(nproc)
 
 # Outputs:
 # out/target/product/a02q/recovery.img
-# out/target/product/a02q/recovery.tar  (Odin-flashable)
+# out/target/product/a02q/recovery.tar (Odin-flashable)
 ```
 
-CI build is available via `.github/workflows/twrp-build.yml` (manual dispatch and on PR/push).
+### CI Build
 
-## Flashing (high level)
+GitHub Actions workflow is available at [`.github/workflows/twrp-build.yml`](.github/workflows/twrp-build.yml). It runs on:
+- `workflow_dispatch` (manual)
+- `pull_request`
+- `push` to `main`
 
-- Flash `recovery.tar` via Odin in the AP slot (or `recovery.img` via fastboot/heimdall where supported).
-- Flash a disabled-vbmeta image if required by your device/firmware.
-- Disable auto-reboot in Odin and boot recovery immediately to avoid stock recovery restoration.
+Trigger manually:
+```bash
+gh workflow run twrp-build.yml
+```
 
-## Known limitations
+---
 
-- `TW_INCLUDE_CRYPTO` is enabled but encryption/FBE support on this device is limited; run `multidisabler` only if needed and understand data-at-rest risks.
-- SELinux is not forced permissive in this tree; keep enforcing where possible.
-- MTP may require kernel changes.
-- Touch may need power-button lock/unlock to reinitialize on some units.
+## 💾 Flashing Instructions
 
-## Credits
+### Prerequisites
 
-- Original OFRP tree: [ForForkSake/a02s](https://gitlab.com/ForForkSake/a02s)
-- TWRP build reference: [Ragekill3377](https://github.com/Ragekill3377/TWRP-SM-A025F-OS12)
-- Device tree generated with SebaUbuntu's TWRP device tree generator
-- Manifest: minimal-manifest-twrp/platform_manifest_twrp_aosp (twrp-12.1)
-- Prebuilt kernel/dtb source: see prebuilt/README.md
+- Unlocked bootloader
+- Odin (Windows) or Heimdall/fastboot (Linux)
+- Stock firmware backup (BL, AP, CP, CSC)
+- `vbmeta_disabled.tar` if your device requires AVB disabled
 
-## About
+### Flash via Odin
 
-TWRP device tree for Samsung Galaxy A02s (SM-A025F/DS) - Android 12
+1. Boot device into Download Mode (Vol Down + Power + Vol Up)
+2. Open Odin, uncheck **Auto Reboot**
+3. Load `recovery.tar` into **AP** slot
+4. Click **Start**
+5. Immediately boot to Recovery (Vol Up + Power + USB) after flashing to prevent stock recovery restoration
 
-### Resources
+### Flash via Fastboot / Heimdall
 
-[Readme](#readme-ov-file)
+```bash
+fastboot flash recovery recovery.img
+fastboot flash vbmeta vbmeta_disabled.img  # if required
+fastboot boot recovery.img
+```
 
-[MIT license](#MIT-1-ov-file)
+---
 
 ## ⚠️ Important Warning
 
-This device tree is **untested**. Build, hardware compatibility, and karma-based workflow mean that building, testing, or using this project is entirely at your own risk. The developer and contributors of this repository are not responsible for device bricking (soft/hard brick), data loss, warranty loss, or any kind of damage. Before flashing, make sure to back up your stock firmware and `vbmeta`.
+**This device tree is UNTESTED.** Build success, hardware compatibility, and all functionality are provided **as-is** without warranty.
+
+Building, testing, or using this project is entirely **at your own risk**. The developer and contributors are **not responsible** for:
+- Device bricking (soft/hard brick)
+- Data loss
+- Warranty loss
+- Any kind of damage
+
+**Before flashing:**
+1. Back up your stock firmware (BL, AP, CP, CSC)
+2. Back up your `vbmeta` partition
+3. Ensure your bootloader is unlocked
+
+---
+
+## 🐛 Known Limitations
+
+- Encryption/FBE support is limited on this device; run `multidisabler` only if needed and understand data-at-rest risks.
+- SELinux is not forced permissive in this tree; keep enforcing where possible.
+- MTP may require kernel modifications.
+- Touch may require power-button lock/unlock to reinitialize on some units.
+
+---
+
+## 🤝 Credits
+
+- [ForForkSake/a02s](https://gitlab.com/ForForkSake/a02s) — Original OFRP tree
+- [Ragekill3377/TWRP-SM-A025F-OS12](https://github.com/Ragekill3377/TWRP-SM-A025F-OS12) — TWRP build reference & prebuilt sources
+- [SebaUbuntu](https://github.com/SebaUbuntu) — TWRP device tree generator
+- [minimal-manifest-twrp/platform_manifest_twrp_aosp](https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp) — Manifest (twrp-12.1)
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 🇹🇷 Türkçe Özet
+
+Bu depo, **Samsung Galaxy A02s (SM-A025F)** cihazı için **Android 12 / TWRP 3.7+** hedefli bir **TWRP cihaz ağacıdır**.
+
+### Özellikler
+- Dokunmatik sürücüsü düzeltildi (`chipone-tddi`, SPI `spi3.3`)
+- Platform sürümü Android 12'ye çıkarıldı
+- Parlaklık yolu cihazdan doğrulandı
+- Super bölüm boyutu cihazdan doğrulandı (`mmcblk0p72`)
+- Dinamik bölüm grubu boyutu güncellendi
+- Model `SM-A025F` olarak ayarlandı
+- Piksel formatı `RGBX_8888` (Samsung MDSS panel için doğru)
+- Notch offsets kaldırıldı (SM-A025F'de notch yok)
+- Varsayılan parlaklık 180 olarak ayarlandı
+- `vendorsetup.sh`'den OrangeFox özel değişkenleri kaldırıldı
+- AVB devre dışı vbmeta desteği (`--flags 2`)
+- GitHub Actions CI derleme desteği (Ubuntu 22.04, JDK 11)
+
+### ⚠️ Önemli Uyarı
+Bu cihaz ağacı **henüz test edilmemiştir**. Derleme, donanım uygunluğu ve tüm işlevsellik "olduğu gibi" sunulur, hiçbir garanti yoktur. Derleme, test veya kullanım tamamen kendi sorumluluğunuzdadır. Geliştirici ve katkıda bulunanlar, cihaz bozulması (soft/hard brick), veri kaybı, garanti kaybı veya her türlü hasardan sorumlu tutulamaz.
+
+**Flashing işleminden önce:**
+1. Stok firmware yedeğinizi alın (BL, AP, CP, CSC)
+2. `vbmeta` bölümünüzün yedeğini alın
+3. Bootloader'ınızın kilidinin açık olduğundan emin olun
+
+---
