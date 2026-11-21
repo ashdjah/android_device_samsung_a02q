@@ -26,93 +26,99 @@ jobs:
       contents: read
 
     steps:
-    - name: Checkout device tree
-      uses: actions/checkout@v4
-      with:
-        path: device-tree
+      - name: Checkout device tree
+        uses: actions/checkout@v4
+        with:
+          path: device-tree
 
-    - name: Maximize disk space
-      run: |
-        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL || true
-        docker image prune -af || true
-        sudo apt-get clean
-        df -h
+      - name: Maximize disk space
+        run: |
+          set -eo pipefail
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL || true
+          docker image prune -af || true
+          sudo apt-get clean
+          df -h
 
-    - name: Install build dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y --no-install-recommends \
-          git-core gnupg flex bison build-essential zip curl zlib1g-dev \
-          libc6-dev-i386 libncurses5 x11proto-core-dev libx11-dev lib32z1-dev \
-          libgl1-mesa-dev libxml2-utils xsltproc unzip python3 python3-pip \
-          rsync ccache bc cpio libssl-dev libelf-dev lz4 openjdk-11-jdk
-        echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> "$GITHUB_ENV"
+      - name: Install build dependencies
+        run: |
+          set -eo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git-core gnupg flex bison build-essential zip curl zlib1g-dev \
+            gcc-multilib g++-multilib libc6-dev-i386 lib32z1-dev \
+            libgl1-mesa-dev libxml2-utils xsltproc unzip python3 \
+            rsync ccache bc cpio libssl-dev libelf-dev lz4 openjdk-11-jdk
+          echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> "$GITHUB_ENV"
 
-    - name: Install repo tool
-      run: |
-        mkdir -p ~/bin
-        curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o ~/bin/repo
-        chmod a+x ~/bin/repo
-        echo "$HOME/bin" >> "$GITHUB_PATH"
+      - name: Install repo tool
+        run: |
+          set -eo pipefail
+          mkdir -p ~/bin
+          curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o ~/bin/repo
+          chmod a+x ~/bin/repo
+          echo "$HOME/bin" >> "$GITHUB_PATH"
 
-    - name: Set git config
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Set git config
+        run: |
+          set -eo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: Initialize and sync TWRP source
-      run: |
-        set -eo pipefail
-        mkdir -p workspace
-        cd workspace
-        export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-        repo init --depth=1 --no-repo-verify -u "${MANIFEST_URL}" -b "${MANIFEST_BRANCH}" -g default,-mips,-darwin,-notdefault
-        repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync --current-branch -j"$(nproc)"
+      - name: Initialize and sync TWRP source
+        run: |
+          set -eo pipefail
+          mkdir -p workspace
+          cd workspace
+          export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+          repo init --depth=1 --no-repo-verify \
+            -u "${MANIFEST_URL}" -b "${MANIFEST_BRANCH}" \
+            -g default,-mips,-darwin,-notdefault
+          repo sync -c --no-clone-bundle --no-tags \
+            --optimized-fetch --prune --force-sync --current-branch \
+            -j"$(nproc)"
 
-    - name: Verify prebuilt artifacts
-      run: |
-        set -eo pipefail
-        for f in kernel dtb.img dtbo.img mkbootimg; do
-          test -f "device-tree/prebuilt/$f" || { echo "Missing prebuilt/$f"; exit 1; }
-        done
+      - name: Verify prebuilt artifacts
+        run: |
+          set -eo pipefail
+          for f in kernel dtb.img dtbo.img; do
+            test -s "device-tree/prebuilt/$f" || { echo "Missing or empty prebuilt/$f"; exit 1; }
+          done
+          test -s "device-tree/prebuilt/mkbootimg" || { echo "Missing prebuilt/mkbootimg"; exit 1; }
+          chmod +x "device-tree/prebuilt/mkbootimg"
 
-    - name: Copy device tree into workspace
-      run: |
-        set -eo pipefail
-        mkdir -p "workspace/${DEVICE_PATH}"
-        rsync -a --delete --exclude='.git' --exclude='.github' --exclude='workspace' device-tree/ "workspace/${DEVICE_PATH}/"
-        ls -la "workspace/${DEVICE_PATH}"
+      - name: Copy device tree into workspace
+        run: |
+          set -eo pipefail
+          mkdir -p "workspace/${DEVICE_PATH}"
+          rsync -a --delete \
+            --exclude='.git' --exclude='.github' --exclude='workspace' \
+            device-tree/ "workspace/${DEVICE_PATH}/"
+          chmod +x "workspace/${DEVICE_PATH}/prebuilt/mkbootimg"
+          ls -la "workspace/${DEVICE_PATH}"
 
-    - name: Diagnose workspace
-      run: |
-        set -eo pipefail
-        pwd
-        ls -la
-        ls -l build/make/core/envsetup.mk || true
-        find . -maxdepth 3 -name envsetup.mk | head
+      - name: Build recovery image
+        run: |
+          set -eo pipefail
+          cd workspace
+          export ALLOW_MISSING_DEPENDENCIES=true
+          export LC_ALL=C
+          export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+          export CCACHE_DIR="${GITHUB_WORKSPACE}/.ccache"
+          export USE_CCACHE=1
+          set +u
+          . build/envsetup.sh
+          lunch "${MAKEFILE_NAME}-eng"
+          mka "${BUILD_TARGET}image" -j"$(nproc)"
 
-    - name: Build recovery image
-      run: |
-        set -eo pipefail
-        cd workspace
-        export ALLOW_MISSING_DEPENDENCIES=true
-        export LC_ALL=C
-        export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-        export CCACHE_DIR="${GITHUB_WORKSPACE}/.ccache"
-        export USE_CCACHE=1
-        set +u
-        . build/envsetup.sh
-        lunch "${MAKEFILE_NAME}-eng"
-        mka "${BUILD_TARGET}image" -j"$(nproc)"
+      - name: Verify output
+        run: |
+          set -eo pipefail
+          ls -lh "workspace/out/target/product/${DEVICE_NAME}/"
+          test -s "workspace/out/target/product/${DEVICE_NAME}/recovery.img"
 
-    - name: Verify output
-      run: |
-        ls -lh "workspace/out/target/product/${DEVICE_NAME}/"
-        test -s "workspace/out/target/product/${DEVICE_NAME}/recovery.img"
-
-    - name: Upload recovery image
-      uses: actions/upload-artifact@v4
-      with:
-        name: TWRP-SM-A025F-recovery-image
-        path: workspace/out/target/product/${{ env.DEVICE_NAME }}/recovery.img
-        if-no-files-found: error
+      - name: Upload recovery image
+        uses: actions/upload-artifact@v4
+        with:
+          name: TWRP-SM-A025F-recovery-image
+          path: workspace/out/target/product/${{ env.DEVICE_NAME }}/recovery.img
+          if-no-files-found: error
