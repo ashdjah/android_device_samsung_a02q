@@ -110,3 +110,7 @@ TWRP device tree for Samsung Galaxy A02s (SM-A025F/DS) - Android 12
 [Readme](#readme-ov-file)
 
 [MIT license](#MIT-1-ov-file)
+
+## ⚠️ Önemli Uyarı
+
+Bu cihaz ağacı **henüz test edilmemiştir**. Derleme, donanım uygunluğu ve karma kaynaklı çalışma yöntemi nedeniyle; bu projeyi test etmek veya kullanmak tamamen sizin sorumluluğunuzdadır. Geliştirici ve bu depoda yer alan katkıda bulunanlar, cihaz bozulması (soft/hard brick), veri kaybı, garanti kaybı veya her türlü hasardan sorumlu tutulamaz. Flash işleminden önce stok firmware ve `vbmeta` yedeğinizi mutlaka alın.
