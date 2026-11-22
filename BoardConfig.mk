@@ -125,7 +125,7 @@ TW_INCLUDE_FBE_METADATA_DECRYPT := true
 BOARD_USES_METADATA_PARTITION := true
 
 # TWRP specific build flags
-TW_DEVICE_VERSION := 1_SM-A025F
+TW_DEVICE_VERSION := 2_SM-A025F
 TW_THEME := portrait_hdpi
 RECOVERY_SDCARD_ON_DATA := true
 TARGET_RECOVERY_QCOM_RTC_FIX := true
@@ -148,13 +148,18 @@ TW_HAS_DOWNLOAD_MODE := true
 TW_INCLUDE_NTFS_3G := true
 TW_USE_NEW_MINADBD := true
 
+# Dokunmatik olu oldugu icin ekran/acilis davranislari
+TW_NO_SCREEN_TIMEOUT := true
+TW_NO_SCREEN_BLANK := true
+
 # Touch Driver Fix
 # Touch controller verified from device: /dev/input/event2 -> "chipone-tddi"
 # Connected via SPI: /devices/platform/soc/78b7000.spi/spi3/spi3.3/input/input2
 # hbtp_vm does NOT exist on SM-A025F (verified with getevent -l)
 # Firmware: /vendor/firmware/chipone-tddi.bin (55168 bytes) included in ramdisk
 # TW_INPUT_BLACKLIST intentionally NOT set (removed hbtp_vm from original tree)
-TW_SCREEN_BLANK_ON_BOOT := true
+# Ekrani kapatma yok; dokunmatik olu oldugu icin kullanici ekrani gormeli
+TW_SCREEN_BLANK_ON_BOOT := false
 
 TW_EXCLUDE_DEFAULT_USB_INIT := true
 TW_USE_TOOLBOX := true

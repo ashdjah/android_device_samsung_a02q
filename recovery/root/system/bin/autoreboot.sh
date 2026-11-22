@@ -2,7 +2,7 @@
 #
 # autoreboot.sh - TWRP guvenlik agi (SM-A025F / a02q)
 #
-# Amac: TWRP acildiktan sonra 17 saniye icinde hicbir girdi (dokunmatik,
+# Amac: TWRP acildiktan sonra 45 saniye icinde hicbir girdi (dokunmatik,
 # tus, fare) gelmezse cihazi sisteme yeniden baslatir. Dokunmatik surucu
 # calismadiginda cihaz TWRP'de kilitli kalip boot dongusune giriyor;
 # bu betik o donguyu kirar.
@@ -24,14 +24,78 @@
 #
 
 LOG=/tmp/autoreboot.log
-DELAY=17
+DELAY=45
 HIT=/tmp/autoreboot.hit
 STOP=/tmp/autoreboot.stop
 PIDFILE=/tmp/autoreboot.pid
 
+# Boot basarisiz olursa kilitli kalmayalim diye: /cache reboot'lar arasinda
+# yasayan bir sayac tutar. Android acilip kal irsa bir daha buraya gelinmez;
+# geri gelinirse (boot失败) sayac artar. Esikten sonra otomatik reboot
+# durdurulur ve TWRP adb icin acik kalir.
+COUNT_FILE=/cache/.autoreboot_attempts
+LAST_FILE=/cache/.autoreboot_last
+MAX_ATTEMPTS=3
+REBOOT_WINDOW=180
+
 log() {
     echo "[autoreboot] $*" >> "$LOG" 2>/dev/null
     echo "[autoreboot] $*" >> /tmp/recovery.log 2>/dev/null
+}
+
+read_count() {
+    c=$(cat "$COUNT_FILE" 2>/dev/null | tr -dc '0-9')
+    [ -z "$c" ] && c=0
+    echo "$c"
+}
+
+record_attempt() {
+    now=$(date +%s 2>/dev/null | tr -dc '0-9')
+    [ -z "$now" ] && now=0
+    last=$(cat "$LAST_FILE" 2>/dev/null | tr -dc '0-9')
+    [ -z "$last" ] && last=0
+    count=$(read_count)
+    if [ "$last" -gt 0 ] && [ "$now" -gt 0 ]; then
+        delta=$((now - last))
+        if [ "$delta" -gt "$REBOOT_WINDOW" ]; then
+            log "sayac sifirlandi (son deneme ${delta}s once, pencere ${REBOOT_WINDOW}s)"
+            count=0
+        fi
+    fi
+    count=$((count + 1))
+    mkdir -p /cache 2>/dev/null
+    echo "$count" > "$COUNT_FILE" 2>/dev/null
+    echo "$now" > "$LAST_FILE" 2>/dev/null
+    log "boot denemesi sayaci: $count/$MAX_ATTEMPTS"
+    echo "$count"
+}
+
+clear_attempts() {
+    rm -f "$COUNT_FILE" "$LAST_FILE" 2>/dev/null
+    log "boot deneme sayaci temizlendi"
+}
+
+clear_bcb() {
+    MISC=""
+    for p in /dev/block/by-name/misc \
+             /dev/block/bootdevice/by-name/misc \
+             /dev/block/platform/soc/*/by-name/misc; do
+        if [ -b "$p" ]; then
+            MISC="$p"
+            break
+        fi
+    done
+    if [ -n "$MISC" ]; then
+        if dd if=/dev/zero of="$MISC" bs=4096 count=1 2>/dev/null; then
+            log "BCB sifirlandi: $MISC"
+        else
+            log "UYARI: BCB yazilamadi: $MISC"
+        fi
+    else
+        log "UYARI: misc bolumu bulunamadi"
+    fi
+    rm -f /cache/recovery/command 2>/dev/null
+    sync
 }
 
 # --- Elle iptal: "autoreboot.sh cancel" -------------------------------------
@@ -71,6 +135,7 @@ sleep 2
 for f in /tmp/ready /tmp/-ready /tmp/no-autoreboot /cache/.no-autoreboot; do
     if [ -e "$f" ]; then
         log "IPTAL: hazir isareti bulundu -> $f"
+        clear_attempts
         exit 0
     fi
 done
@@ -103,8 +168,8 @@ done
 
 # USB tarafi: karsi tarafta bir host (PC veya Termux) varsa da iptal say.
 # /sys/class/udc/<udc>/state "configured" ise konfigurasyon uygulanmis
-# demektir; yani biri baglanmis ve adb kullanıyor. Bu durumda 17 saniye
-# sonra reboot etmek baglantiyi oldurur, o yuzden iptal.
+# demektir; yani biri baglanmis ve adb kullanıyor. Bu durumda geri sayim
+# sonunda reboot etmek baglantiyi oldurur, o yuzden iptal.
 (
     while [ ! -e "$STOP" ]; do
         if grep -qs configured /sys/class/udc/*/state 2>/dev/null; then
@@ -153,10 +218,24 @@ wait
 
 if [ -s "$HIT" ]; then
     log "IPTAL: girdi algilandi -> $(tr '\n' ' ' < "$HIT")"
+    clear_attempts
     exit 0
 fi
 
 log "girdi gelmedi, sisteme yeniden baslatiliyor"
+
+# --- Fallback: ust uste boot basarisizsa donguyu kir -------------------------
+# Android bir kez acilip kalsa buraya tekrar gelmeyiz. Birkaq saniye icinde
+# yine TWRP'ye dusuyorsak boot tutmuyor demektir: belli sayidan sonra reboot
+# etmeyi birakir, TWRP'yi adb icin acik tutariz.
+attempts=$(record_attempt)
+if [ "$attempts" -ge "$MAX_ATTEMPTS" ]; then
+    log "UYARI: $attempts. hizli boot hatasi -> otomatik reboot DURDURULDU"
+    log "BCB temizleniyor, TWRP acik kaliyor (adb icin)"
+    clear_bcb
+    clear_attempts
+    exit 0
+fi
 
 # ---------------------------------------------------------------------------
 # 4) Bootloader Control Block'u temizle (misc ilk 4096 bayt)
