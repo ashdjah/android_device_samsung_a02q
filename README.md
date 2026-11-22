@@ -9,7 +9,9 @@ TWRP Device Tree for Samsung Galaxy A02s (SM-A025F / SM-A025F/DS) — Android 12
 
 ## ⚠️ Important Warning — Read Before Flashing
 
-**This device tree is UNTESTED.** It has **not** been booted on a physical SM-A025F/DS device. Build success does **not** guarantee that the recovery will boot, that touch will work, that decryption will function, or that your data will be safe.
+**Use at your own risk.** CI build success does **not** guarantee that recovery will boot on every unit, that all panel variants will work, that decryption will function, or that your data will be safe.
+
+**20261122d:** User reported real-hardware test on SM-A025F with touch working. Other features/hardware variants still need broader verification.
 
 Building, flashing, or using this project is entirely **at your own risk**. The maintainer and contributors are **not responsible** for:
 - Device bricking (soft/hard brick)
@@ -46,10 +48,13 @@ Building, flashing, or using this project is entirely **at your own risk**. The 
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| CI Build | Pending | GitHub Actions workflow |
-| Boot to TWRP | ❌ Untested | No physical device available |
-| Touch | ❌ Untested | `chipone-tddi.bin` firmware included |
+| CI Build | ✅ Passing | GitHub Actions workflow on `main` |
+| Boot to TWRP | ⚠️ Reported working | User-reported on 20261122d; broader verification needed |
+| Touch (ICNL9911C, hwid 991110) | ✅ Reported working | 20261122d force-loads `chipone-tddi.bin` via CTS `update_from_file` |
+| Touch (other panel variants) | ❌ Untested | See issue #4 for variants/evidence |
 | Brightness | ❌ Untested | Path verified from ADB |
+| USB/ADB in recovery | ⚠️ Reported working | User-reported via Bugjaeger/adb; broader verification needed |
+| Boot-loop failsafe / autoreboot | ⚠️ Implemented, limited verification | 45s autoreboot, 3-attempt/180s failsafe, BCB cleanup |
 | Decryption / FBE | ⚠️ Limited | Run `multidisabler` if needed; understand data-at-rest risks |
 | MTP | ❌ Untested | May require kernel changes |
 
@@ -59,16 +64,16 @@ Building, flashing, or using this project is entirely **at your own risk**. The 
 
 Before building, place the following files in `prebuilt/` (see [`prebuilt/README.md`](prebuilt/README.md)):
 
-| File | Source Revision | SHA-256 | Required |
-|------|-----------------|---------|----------|
-| `kernel` | Ragekill3377/a02q_twrp_tree_omni (main) | [compute locally] | Yes |
-| `dtb.img` | Ragekill3377/a02q_twrp_tree_omni (main) | [compute locally] | Yes |
-| `dtbo.img` | Ragekill3377/a02q_twrp_tree_omni (main) | [compute locally] | Yes |
-| `mkbootimg` | Ragekill3377/a02q_twrp_tree_omni (main) | [compute locally] | Yes |
+| File | Source | Required |
+|------|--------|----------|
+| `kernel` | Ragekill3377/a02q_twrp_tree_omni (main) | Yes |
+| `dtb.img` | Ragekill3377/a02q_twrp_tree_omni (main) | Yes |
+| `dtbo.img` | Ragekill3377/a02q_twrp_tree_omni (main) | Yes |
+| `mkbootimg` | Ragekill3377/a02q_twrp_tree_omni (main) | Yes |
 
 **Direct source:** https://github.com/Ragekill3377/a02q_twrp_tree_omni/tree/main/prebuilt
 
-> ⚠️ Without these prebuilt artifacts, `make recoveryimage` will fail. The workflow verifies their presence before building. Compute the SHA-256 checksum of each file after downloading to verify integrity.
+> ⚠️ Without these prebuilt artifacts, `make recoveryimage` will fail. The workflow verifies their presence before building. Compute SHA-256 checksums after downloading to verify integrity.
 
 ---
 
@@ -107,46 +112,51 @@ make recoveryimage -j$(nproc)
 # out/target/product/a02q/recovery.tar (Odin-flashable)
 ```
 
+### Latest Release
+
+Use the latest release unless you have a specific reason to test an older one. Older releases are kept for testing/changing release code and are marked **not recommended**.
+
+- **Recommended:** [twrp-12.1-a02q-20261122d](https://github.com/ashdjah/android_device_samsung_a02q/releases/tag/twrp-12.1-a02q-20261122d)
+- Older builds: see [Releases](https://github.com/ashdjah/android_device_samsung_a02q/releases) (marked sıkıntılı/not recommended)
+- Untested EDL recovery package: [edl-a02q-recovery-untested-20261122](https://github.com/ashdjah/android_device_samsung_a02q/releases/tag/edl-a02q-recovery-untested-20261122)
+
 ### CI Build & Artifact Access
 
-GitHub Actions workflow is at [`.github/workflows/twrp-build.yml`](.github/workflows/twrp-build.yml). It runs on:
+GitHub Actions workflow is at [`.github/workflows/twrp-build.yml`](.github/workflows/twrp-build.yml). It runs on `workflow_dispatch`, `pull_request`, and `push` to `main`.
 
-- `workflow_dispatch` (manual trigger)
-- `pull_request`
-- `push` to `main`
-
-**Manual trigger:**
 ```bash
-gh workflow run twrp-build.yml
-```
-
-**Download artifact:**
-After a successful run, download `recovery.img` from the Actions page or via CLI:
-```bash
+gh workflow run twrp-build.yml --repo ashdjah/android_device_samsung_a02q
 gh run list --repo ashdjah/android_device_samsung_a02q --workflow twrp-build.yml
-gh run download <RUN_ID> --name TWRP-SM-A025F-recovery-image
+gh run download <RUN_ID> --repo ashdjah/android_device_samsung_a02q --name TWRP-SM-A025F-recovery-image
 ```
 
 ---
 
 ## 💾 Flashing Instructions (Samsung SM-A025F/DS — Odin Only)
 
-Samsung SM-A025F/DS devices use **Download Mode + Odin**, not fastboot. Fastboot commands will **not** work on this device unless fastbootd is explicitly available in recovery (not guaranteed).
+Samsung SM-A025F/DS uses **Download Mode + Odin**, not fastboot.
 
 ### Prerequisites
 
 - Unlocked bootloader
-- Odin (Windows) — [Download from official Samsung sources]
+- Odin (Windows) or Heimdall
 - Stock firmware backup (BL, AP, CP, CSC)
-- `vbmeta_disabled.tar` if your device requires AVB disabled
+- `vbmeta` backup if you modify AVB
 
 ### Flash via Odin
 
-1. Boot device into Download Mode (Vol Down + Power + Vol Up)
-2. Open Odin, **uncheck Auto Reboot**
-3. Load `recovery.tar` into **AP** slot
-4. Click **Start**
-5. **Immediately boot to Recovery** (Vol Up + Power + USB) after flashing to prevent stock recovery restoration
+1. Download `recovery.tar.md5` from the [latest release](https://github.com/ashdjah/android_device_samsung_a02q/releases/tag/twrp-12.1-a02q-20261122d).
+2. Boot device into Download Mode.
+3. Open Odin, **uncheck Auto Reboot**.
+4. Load `recovery.tar.md5` into **AP**.
+5. Click **Start**.
+6. After PASS, boot directly to Recovery (do not boot system first) to avoid stock recovery restoration.
+
+### Flash via Heimdall
+
+```bash
+heimdall flash --RECOVERY recovery.img --no-reboot
+```
 
 ---
 
@@ -167,7 +177,8 @@ If TWRP fails to boot or causes a bootloop:
 |-------|---------------|----------|
 | **Bootloop after flash** | Stock recovery restoration | Disable auto-reboot in Odin; boot to Recovery immediately after flashing. Rename `system/recovery-from-boot.p` to `.bak` |
 | **Bootloop after flash** | vbmeta verification enabled | Flash `vbmeta_disabled.tar` in AP slot with flags=2 |
-| **Touch not working** | Wrong touch controller firmware | Ensure `chipone-tddi.bin` is in `recovery/root/vendor/firmware/`. Try power-button lock/unlock |
+| **Touch not working (ICNL9911C)** | CTS driver did not load firmware at boot | Fixed in 20261122d by `touch-fw.sh` force-loading `cts_firmware/update_from_file`. Manual temp test: `echo /vendor/firmware/chipone-tddi.bin > /sys/devices/platform/soc/78b7000.spi/spi_master/spi3/spi3.3/cts_firmware/update_from_file` |
+| **Touch not working (other panel)** | Different controller/firmware | Collect `dmesg`/panel cmdline and report in #4 with evidence |
 | **No backlight control** | Wrong brightness path | Verify `/sys/class/leds/lcd-backlight/brightness` or `/sys/class/backlight/panel0-backlight/brightness` on your device |
 | **MTP not working** | Kernel limitation | MTP may require kernel modification; not fixable in device tree alone |
 | **Data not mounting/decrypting** | FBE encryption | Run `multidisabler` in TWRP Terminal, then Format Data. Understand data-at-rest risks |
