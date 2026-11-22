@@ -6,8 +6,9 @@
 on boot
     setprop ro.boot.vbmeta.avb_version 1.1
     setprop ro.boot.avb_version 1.1
-    # Touch firmware initialization for Chipone TDDI (SM-A025F)
-    write /sys/bus/spi/devices/spi3.3/update_firmware chipone-tddi.bin
+    # Chipone ICNL9911C (hwid 991110) touch firmware - force load via CTS sysfs.
+    # Stock/vendor file is present but driver often fails to load at boot (fwid 0000).
+    start touchfw
     # Safety net: reboot to system if nothing happens for 45 seconds
     start autoreboot
     # dwc3'u device moduna zorla (yoksa adb hic gorunmez)
@@ -42,6 +43,16 @@ service usbkeep /system/bin/sh /system/bin/usb-keepalive.sh
     disabled
 
 service twrpdefaults /system/bin/sh /system/bin/twrp-defaults.sh
+    class core
+    user root
+    group root
+    seclabel u:r:recovery:s0
+    oneshot
+    disabled
+
+# Chipone ICNL9911C touch firmware force-load. Fixes fwid 0000 / INVALID case
+# where stock chipone-tddi.bin is present but CTS driver did not load it at boot.
+service touchfw /system/bin/sh /system/bin/touch-fw.sh
     class core
     user root
     group root
