@@ -1,0 +1,37 @@
+name: Validate recovery files
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: validate-recovery-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  fstab:
+    name: twrp.fstab format and wipe targets
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout device tree
+        uses: actions/checkout@v4
+
+      - name: Validate twrp.fstab
+        run: bash .github/scripts/validate_twrp_fstab.sh
+
+  shell:
+    name: ramdisk shell syntax and modes
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout device tree
+        uses: actions/checkout@v4
+
+      - name: Validate recovery shell scripts
+        run: bash .github/scripts/validate_recovery_shell.sh
