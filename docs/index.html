@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TWRP for Samsung Galaxy A02s (SM-A025F / a02q) — Android 12 recovery</title>
+  <meta name="description" content="Unofficial TWRP 12.1 custom recovery device tree for Samsung Galaxy A02s SM-A025F and SM-A025F/DS, codename a02q, Snapdragon 450 MSM8953. Source, issues and automated GitHub Actions builds.">
+  <meta name="keywords" content="TWRP, SM-A025F, SM-A025F/DS, a02q, Samsung Galaxy A02s, custom recovery, Android 12, MSM8953, Snapdragon 450, Odin, recovery.img, GitHub Actions">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+  <link rel="canonical" href="https://github.com/ashdjah/android_device_samsung_a02q">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TWRP for Samsung Galaxy A02s (SM-A025F / a02q)">
+  <meta property="og:description" content="Unofficial TWRP 12.1 custom recovery device tree for SM-A025F / a02q with automated builds.">
+  <meta property="og:url" content="https://ashdjah.github.io/android_device_samsung_a02q/">
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; background: #0d1117; color: #e6edf3; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    main { max-width: 52rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    h1 { font-size: 2rem; line-height: 1.25; margin-bottom: .25rem; }
+    h2 { font-size: 1.25rem; margin-top: 2rem; border-bottom: 1px solid #30363d; padding-bottom: .4rem; }
+    a { color: #58a6ff; }
+    code { background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: .1rem .35rem; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { text-align: left; padding: .5rem; border-bottom: 1px solid #30363d; }
+    .lead { color: #9198a1; }
+    .warn { border-left: 4px solid #d29922; background: #1c1a12; padding: .75rem 1rem; }
+    ul.links { list-style: none; padding: 0; }
+    ul.links li { margin: .6rem 0; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>TWRP for Samsung Galaxy A02s</h1>
+  <p class="lead">Unofficial TWRP 12.1 custom recovery for <strong>SM-A025F</strong> and <strong>SM-A025F/DS</strong>, codename <code>a02q</code>, Qualcomm Snapdragon 450 (MSM8953).</p>
+
+  <p class="warn">Flash at your own risk. Back up stock firmware (BL, AP, CP, CSC), back up <code>vbmeta</code>, and unlock the bootloader before using any recovery image.</p>
+
+  <h2>What is here</h2>
+  <p>The repository contains the complete <code>device/samsung/a02q</code> TWRP 12.1 device tree: recovery ramdisk, fstab, prebuilt kernel and DTB, touch firmware handling, USB and autoreboot scripts, and GitHub Actions workflows that build <code>recovery.img</code> and <code>recovery.tar</code> for Odin.</p>
+
+  <h2>Device facts</h2>
+  <table>
+    <tr><th>Model</th><td>Samsung Galaxy A02s (SM-A025F / SM-A025F/DS)</td></tr>
+    <tr><th>Codename</th><td><code>a02q</code></td></tr>
+    <tr><th>SoC</th><td>Snapdragon 450, MSM8953, arm64 kernel / 32-bit userspace</td></tr>
+    <tr><th>Android base</th><td>12 (API 31), dynamic <code>super</code> partitions</td></tr>
+    <tr><th>Recovery</th><td>TWRP 3.7+ / TWRP 12.1 branch</td></tr>
+  </table>
+
+  <h2>Links</h2>
+  <ul class="links">
+    <li><a href="https://github.com/ashdjah/android_device_samsung_a02q">Source repository: ashdjah/android_device_samsung_a02q</a></li>
+    <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/releases">Ready-made recovery.img / recovery.tar releases</a></li>
+    <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/actions/workflows/twrp-build.yml">Automated build workflow</a></li>
+    <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/issues">Known issues and hardware reports</a></li>
+    <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/blob/main/README.md">Full README and build instructions</a></li>
+  </ul>
+</main>
+</body>
+</html>

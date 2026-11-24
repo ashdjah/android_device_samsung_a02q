@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ashdjah.github.io/android_device_samsung_a02q/sitemap.xml
