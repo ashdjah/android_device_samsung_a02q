@@ -3,58 +3,187 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TWRP for Samsung Galaxy A02s (SM-A025F / a02q) — Android 12 recovery</title>
-  <meta name="description" content="Unofficial TWRP 12.1 custom recovery device tree for Samsung Galaxy A02s SM-A025F and SM-A025F/DS, codename a02q, Snapdragon 450 MSM8953. Source, issues and automated GitHub Actions builds.">
-  <meta name="keywords" content="TWRP, SM-A025F, SM-A025F/DS, a02q, Samsung Galaxy A02s, custom recovery, Android 12, MSM8953, Snapdragon 450, Odin, recovery.img, GitHub Actions">
+  <title>TWRP 12.1 for Galaxy A02s (SM-A025F / a02q) | ashdjah</title>
+  <meta name="description" content="Unofficial TWRP 12.1 for Samsung Galaxy A02s SM-A025F and SM-A025F/DS, codename a02q. Source tree, Odin packages, build logs and known hardware issues.">
+  <meta name="keywords" content="TWRP, SM-A025F, SM-A025F/DS, a02q, Galaxy A02s, Samsung, custom recovery, Android 12, MSM8953, Snapdragon 450, Odin, recovery.img">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
-  <link rel="canonical" href="https://github.com/ashdjah/android_device_samsung_a02q">
+  <meta name="theme-color" content="#0a0c0d">
+  <link rel="canonical" href="https://ashdjah.github.io/android_device_samsung_a02q/">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="TWRP for Samsung Galaxy A02s (SM-A025F / a02q)">
-  <meta property="og:description" content="Unofficial TWRP 12.1 custom recovery device tree for SM-A025F / a02q with automated builds.">
+  <meta property="og:title" content="TWRP 12.1 for Galaxy A02s (SM-A025F / a02q)">
+  <meta property="og:description" content="Source tree, Odin packages, build logs and known hardware issues for a02q recovery.">
   <meta property="og:url" content="https://ashdjah.github.io/android_device_samsung_a02q/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0c0d'/%3E%3Cpath d='M8 16h16M16 8v16' stroke='%238bd450' stroke-width='3'/%3E%3C/svg%3E">
   <style>
-    :root { color-scheme: dark; }
-    body { margin: 0; background: #0d1117; color: #e6edf3; font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    main { max-width: 52rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
-    h1 { font-size: 2rem; line-height: 1.25; margin-bottom: .25rem; }
-    h2 { font-size: 1.25rem; margin-top: 2rem; border-bottom: 1px solid #30363d; padding-bottom: .4rem; }
-    a { color: #58a6ff; }
-    code { background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: .1rem .35rem; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { text-align: left; padding: .5rem; border-bottom: 1px solid #30363d; }
-    .lead { color: #9198a1; }
-    .warn { border-left: 4px solid #d29922; background: #1c1a12; padding: .75rem 1rem; }
-    ul.links { list-style: none; padding: 0; }
-    ul.links li { margin: .6rem 0; }
+    :root {
+      color-scheme: dark;
+      --bg: #0a0c0d;
+      --surface: #111417;
+      --line: #242a2f;
+      --text: #e7eaec;
+      --muted: #98a2a9;
+      --accent: #8bd450;
+      --warn: #d8a13a;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.65 var(--sans); }
+    a { color: var(--accent); text-decoration: none; border-bottom: 1px solid #3c5a2a; }
+    a:hover { border-bottom-color: currentColor; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .skip { position: absolute; left: -999px; }
+    .skip:focus { left: 1rem; top: 1rem; z-index: 10; padding: .5rem .75rem; background: var(--surface); }
+    header.site, main, footer { max-width: 960px; margin: 0 auto; }
+    header.site { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: 1px solid var(--line); }
+    .mark { border: 0; font: 600 .85rem/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--text); }
+    .lang { font: 11px/1 var(--mono); letter-spacing: .14em; }
+    .lang span { color: var(--muted); margin: 0 .4rem; }
+    main { padding: 3.25rem 1.25rem 4rem; }
+    .hero { padding-bottom: 2.5rem; border-bottom: 1px solid var(--line); }
+    .eyebrow { margin: 0 0 1rem; font: 11px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+    h1 { margin: 0 0 1rem; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; letter-spacing: -.03em; font-weight: 650; }
+    h2 { margin: 0 0 1rem; font-size: 1.15rem; letter-spacing: -.01em; }
+    .lede { max-width: 46rem; margin: 0 0 1.75rem; font-size: 1.05rem; color: var(--muted); }
+    .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 2rem; }
+    .btn { display: inline-block; padding: .6rem 1rem; border: 1px solid var(--line); border-radius: 4px; font-size: .9rem; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #0a0c0d; font-weight: 600; }
+    .btn.primary:hover { background: #a1e36a; }
+    .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1px; margin: 0; background: var(--line); border: 1px solid var(--line); }
+    .fact { background: var(--surface); padding: 1rem; }
+    .fact dt { margin-bottom: .5rem; font: 10px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+    .fact dd { margin: 0; font-size: .9rem; }
+    .badges { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1rem; }
+    .badges img { display: block; height: 20px; }
+    section.block { padding-top: 2.5rem; }
+    p { margin: 0 0 1rem; }
+    ol, ul { margin: 0 0 1rem; padding-left: 1.2rem; }
+    li { margin-bottom: .55rem; }
+    .note { margin: 1rem 0 1.5rem; padding: .85rem 1rem; border-left: 2px solid var(--warn); background: #16140f; color: #d9caa8; font-size: .9rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th, td { padding: .65rem .5rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { font: 10px/1.4 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+    code, pre { font-family: var(--mono); font-size: .85em; }
+    code { padding: .1rem .3rem; background: var(--surface); border: 1px solid var(--line); border-radius: 3px; }
+    pre { margin: 0 0 1rem; padding: 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; overflow-x: auto; line-height: 1.5; }
+    footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1.5rem 1.25rem 3rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+    @media (max-width: 600px) {
+      header.site { padding: .8rem 1rem; }
+      main { padding: 2rem 1rem 3rem; }
+      .actions .btn { flex: 1 1 auto; text-align: center; }
+      footer { padding: 1.5rem 1rem 3rem; }
+    }
   </style>
 </head>
 <body>
-<main>
-  <h1>TWRP for Samsung Galaxy A02s</h1>
-  <p class="lead">Unofficial TWRP 12.1 custom recovery for <strong>SM-A025F</strong> and <strong>SM-A025F/DS</strong>, codename <code>a02q</code>, Qualcomm Snapdragon 450 (MSM8953).</p>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site">
+    <a class="mark" href="https://ashdjah.github.io/">ashdjah</a>
+    <nav class="lang" aria-label="Language"><a href="#en">EN</a><span>/</span><a href="#tr">TR</a></nav>
+  </header>
 
-  <p class="warn">Flash at your own risk. Back up stock firmware (BL, AP, CP, CSC), back up <code>vbmeta</code>, and unlock the bootloader before using any recovery image.</p>
+  <main id="main">
+    <div class="hero">
+      <p class="eyebrow">SM-A025F / a02q / TWRP 12.1</p>
+      <h1>TWRP for Galaxy A02s</h1>
+      <p class="lede">Unofficial TWRP 12.1 for SM-A025F and SM-A025F/DS, codename a02q. Snapdragon 450, Android 12 base, dynamic super partitions. Source, build logs and release packages are public.</p>
+      <div class="actions">
+        <a class="btn primary" href="https://github.com/ashdjah/android_device_samsung_a02q/releases">Release packages</a>
+        <a class="btn" href="https://github.com/ashdjah/android_device_samsung_a02q/blob/main/README.md">Build instructions</a>
+      </div>
+      <dl class="facts">
+        <div class="fact"><dt>Latest release</dt><dd><a href="https://github.com/ashdjah/android_device_samsung_a02q/releases/tag/twrp-12.1-a02q-20261122d">20261122d</a></dd></div>
+        <div class="fact"><dt>Hardware check</dt><dd>Touch confirmed on one SM-A025F, 22 Nov 2026</dd></div>
+        <div class="fact"><dt>Source</dt><dd>twrp-12.1 / device/samsung/a02q</dd></div>
+        <div class="fact"><dt>Open issues</dt><dd><a href="https://github.com/ashdjah/android_device_samsung_a02q/issues">5 tracked bugs</a></dd></div>
+      </dl>
+      <div class="badges">
+        <a href="https://github.com/ashdjah/android_device_samsung_a02q/actions/workflows/twrp-build.yml"><img src="https://img.shields.io/github/actions/workflow/status/ashdjah/android_device_samsung_a02q/twrp-build.yml?branch=main&amp;label=build&amp;style=flat-square" alt="Build workflow status"></a>
+        <a href="https://github.com/ashdjah/android_device_samsung_a02q/releases"><img src="https://img.shields.io/github/v/release/ashdjah/android_device_samsung_a02q?include_prereleases&amp;style=flat-square" alt="Latest release tag"></a>
+        <a href="https://github.com/ashdjah/android_device_samsung_a02q/issues"><img src="https://img.shields.io/github/issues/ashdjah/android_device_samsung_a02q?style=flat-square" alt="Open issue count"></a>
+      </div>
+    </div>
 
-  <h2>What is here</h2>
-  <p>The repository contains the complete <code>device/samsung/a02q</code> TWRP 12.1 device tree: recovery ramdisk, fstab, prebuilt kernel and DTB, touch firmware handling, USB and autoreboot scripts, and GitHub Actions workflows that build <code>recovery.img</code> and <code>recovery.tar</code> for Odin.</p>
+    <section class="block" id="en" lang="en">
+      <h2>Install</h2>
+      <ol>
+        <li>Check the model under Settings &gt; About phone. This tree targets SM-A025F and SM-A025F/DS only.</li>
+        <li>Unlock the bootloader. Back up BL, AP, CP, CSC and vbmeta from stock firmware before touching recovery.</li>
+        <li>Download <code>recovery.tar</code> from the latest release. In Odin, turn Auto Reboot off, load the file into AP, and flash. After PASS, boot straight to Recovery before Android starts.</li>
+        <li>For Heimdall, write <code>recovery.img</code> to the recovery partition with <code>heimdall flash --RECOVERY recovery.img --no-reboot</code>. Do not write it to boot.</li>
+      </ol>
+      <p class="note">The release file named <code>recovery.tar.md5</code> is the output of <code>md5sum recovery.tar</code>. It is a checksum, not an Odin package. Check it with <code>md5sum -c recovery.tar.md5</code>.</p>
 
-  <h2>Device facts</h2>
-  <table>
-    <tr><th>Model</th><td>Samsung Galaxy A02s (SM-A025F / SM-A025F/DS)</td></tr>
-    <tr><th>Codename</th><td><code>a02q</code></td></tr>
-    <tr><th>SoC</th><td>Snapdragon 450, MSM8953, arm64 kernel / 32-bit userspace</td></tr>
-    <tr><th>Android base</th><td>12 (API 31), dynamic <code>super</code> partitions</td></tr>
-    <tr><th>Recovery</th><td>TWRP 3.7+ / TWRP 12.1 branch</td></tr>
-  </table>
+      <h2>Verify the download</h2>
+      <table>
+        <thead><tr><th>File</th><th>Size</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td><code>recovery.img</code></td><td>36,990,992 B</td><td>Raw image, Heimdall or recovery partition write</td></tr>
+          <tr><td><code>recovery.tar</code></td><td>36,993,024 B</td><td>Odin AP slot</td></tr>
+          <tr><td><code>recovery.tar.md5</code></td><td>47 B</td><td>MD5 manifest, verify the tar</td></tr>
+        </tbody>
+      </table>
+      <pre>SHA256
+9ed685bc8512a7606bd3d2ecfcbe757044de702bc8052c63d41222b92c961aca  recovery.img
+068c2642b0e34930d32ec1a72a6b90c2eee3873ee87eeaa02fac4a60ae04fcb7  recovery.tar
 
-  <h2>Links</h2>
-  <ul class="links">
-    <li><a href="https://github.com/ashdjah/android_device_samsung_a02q">Source repository: ashdjah/android_device_samsung_a02q</a></li>
-    <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/releases">Ready-made recovery.img / recovery.tar releases</a></li>
-    <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/actions/workflows/twrp-build.yml">Automated build workflow</a></li>
-    <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/issues">Known issues and hardware reports</a></li>
-    <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/blob/main/README.md">Full README and build instructions</a></li>
-  </ul>
-</main>
+MD5 (Odin manifest)
+8fd954a88f12c0f5f28cefdf7fd2e383  recovery.tar</pre>
+
+      <h2>Known gaps</h2>
+      <ul>
+        <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/issues/8">#8</a>: the phone is not detected in Samsung Download Mode. USB enumeration dies outside recovery, so this needs a cable, PC port and host test on the device.</li>
+        <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/issues/7">#7</a>: wipe and mount returned "Block device required" on dynamic partitions. The fstab fix is in the tree; wider wipe testing is still open.</li>
+        <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/issues/9">#9</a>: autoreboot cancel does not persist and leaves watcher processes alive.</li>
+        <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/issues/4">#4</a>: touch firmware is missing for some panel variants.</li>
+      </ul>
+
+      <h2>Build from source</h2>
+      <p>Use <code>minimal-manifest-twrp/platform_manifest_twrp_aosp</code>, branch <code>twrp-12.1</code>, target <code>recoveryimage</code>, device tree at <code>device/samsung/a02q</code>. The <a href="https://github.com/ashdjah/android_device_samsung_a02q/actions/workflows/twrp-build.yml">Actions workflow</a> runs that build on pushes to main.</p>
+    </section>
+
+    <section class="block" id="tr" lang="tr">
+      <h2>Flaşlama</h2>
+      <ol>
+        <li>Ayarlar &gt; Telefon hakkında ekranından modeli kontrol edin. Bu ağaç yalnızca SM-A025F ve SM-A025F/DS içindir.</li>
+        <li>Bootloader kilidini açın. Recovery'ye dokunmadan önce stock firmware'den BL, AP, CP, CSC ve vbmeta yedeği alın.</li>
+        <li>Son sürümden <code>recovery.tar</code> dosyasını indirin. Odin'de Auto Reboot'u kapatın, dosyayı AP alanına yükleyin ve flaşlayın. PASS sonrası Android açılmadan doğrudan Recovery'ye girin.</li>
+        <li>Heimdall ile <code>recovery.img</code> dosyasını recovery partition'ına yazın: <code>heimdall flash --RECOVERY recovery.img --no-reboot</code>. Boot partition'ına yazmayın.</li>
+      </ol>
+      <p class="note">Sürümdeki <code>recovery.tar.md5</code> dosyası <code>md5sum recovery.tar</code> çıktısıdır. Odin paketi değildir. <code>md5sum -c recovery.tar.md5</code> ile doğrulayın.</p>
+
+      <h2>İndirmeyi doğrulama</h2>
+      <table>
+        <thead><tr><th>Dosya / File</th><th>Boyut / Size</th><th>Kullanım / Use</th></tr></thead>
+        <tbody>
+          <tr><td><code>recovery.img</code></td><td>36,990,992 B</td><td>Ham imaj, Heimdall veya recovery yazımı</td></tr>
+          <tr><td><code>recovery.tar</code></td><td>36,993,024 B</td><td>Odin AP alanı</td></tr>
+          <tr><td><code>recovery.tar.md5</code></td><td>47 B</td><td>MD5 listesi, tar doğrulaması için</td></tr>
+        </tbody>
+      </table>
+      <pre>SHA256
+9ed685bc8512a7606bd3d2ecfcbe757044de702bc8052c63d41222b92c961aca  recovery.img
+068c2642b0e34930d32ec1a72a6b90c2eee3873ee87eeaa02fac4a60ae04fcb7  recovery.tar
+
+MD5 (Odin doğrulama)
+8fd954a88f12c0f5f28cefdf7fd2e383  recovery.tar</pre>
+
+      <h2>Bilinen eksikler</h2>
+      <ul>
+        <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/issues/8">#8</a>: cihaz Samsung Download Mode'da görünmüyor. USB enumerasyonu recovery dışında ölüyor; kablo, PC portu ve host tarafı cihaz üzerinde test edilmeli.</li>
+        <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/issues/7">#7</a>: dynamic partition'larda wipe ve mount "Block device required" hatası veriyordu. fstab düzeltmesi ağaçta, geniş wipe testi açık.</li>
+        <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/issues/9">#9</a>: autoreboot iptali kalıcı değil, izleyici süreçleri açık kalıyor.</li>
+        <li><a href="https://github.com/ashdjah/android_device_samsung_a02q/issues/4">#4</a>: bazı panel varyantlarında dokunmatik firmware'i eksik.</li>
+      </ul>
+
+      <h2>Kaynaktan derleme</h2>
+      <p><code>minimal-manifest-twrp/platform_manifest_twrp_aosp</code> ağacı, <code>twrp-12.1</code> branch'i, <code>recoveryimage</code> hedefi ve <code>device/samsung/a02q</code> device tree'si kullanılır. <a href="https://github.com/ashdjah/android_device_samsung_a02q/actions/workflows/twrp-build.yml">Actions workflow</a> bu derlemeyi main'e her push'ta çalıştırır.</p>
+    </section>
+  </main>
+
+  <footer>
+    <span><a href="https://github.com/ashdjah/android_device_samsung_a02q">Source repository</a> / MIT</span>
+    <span>Last update: 25 Nov 2026</span>
+  </footer>
 </body>
 </html>
