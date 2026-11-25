@@ -145,12 +145,14 @@ Samsung SM-A025F/DS uses **Download Mode + Odin**, not fastboot.
 
 ### Flash via Odin
 
-1. Download `recovery.tar.md5` from the [latest release](https://github.com/ashdjah/android_device_samsung_a02q/releases/tag/twrp-12.1-a02q-20261122d).
+1. Download `recovery.tar` from the [latest release](https://github.com/ashdjah/android_device_samsung_a02q/releases/tag/twrp-12.1-a02q-20261122d).
 2. Boot device into Download Mode.
 3. Open Odin, **uncheck Auto Reboot**.
-4. Load `recovery.tar.md5` into **AP**.
+4. Load `recovery.tar` into **AP**.
 5. Click **Start**.
 6. After PASS, boot directly to Recovery (do not boot system first) to avoid stock recovery restoration.
+
+The `recovery.tar.md5` asset is the output of `md5sum recovery.tar`. Verify the archive with `md5sum -c recovery.tar.md5` before flashing. It is not an Odin package.
 
 ### Flash via Heimdall
 

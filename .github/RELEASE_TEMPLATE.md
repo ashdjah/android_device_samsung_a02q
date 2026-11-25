@@ -42,9 +42,9 @@
 
 | Dosya / File | Boyut / Size | Kullanım / Use |
 |---|---:|---|
-| `recovery.tar.md5` | <bytes> | Odin — **AP** slotu / slot |
-| `recovery.tar` | <bytes> | Odin payload |
-| `recovery.img` | <bytes> | `dd` / TWRP Install Image → **recovery** partition |
+| `recovery.tar` | <bytes> | Odin — **AP** slotu / slot |
+| `recovery.tar.md5` | <bytes> | `md5sum` çıktısı / manifest, flaş dosyası değil |
+| `recovery.img` | <bytes> | `dd` / TWRP Install Image, **recovery** partition |
 
 ### Checksum'lar / Checksums
 
